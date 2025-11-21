@@ -2,6 +2,16 @@
 
 A modern, clean, and feature-rich personal notes application built with Flask. Perfect for personal note-taking, journaling, and idea capture.
 
+---
+
+## 📊 Status
+
+![CI/CD Pipeline](https://github.com/thienng-it/note-hub/actions/workflows/ci-cd.yml/badge.svg?branch=main)
+![Deploy to Render](https://github.com/thienng-it/note-hub/actions/workflows/deploy-render.yml/badge.svg?branch=main)
+![Deploy GitHub Pages](https://github.com/thienng-it/note-hub/actions/workflows/deploy-pages.yml/badge.svg?branch=main)
+
+---
+
 ## 🚀 Live Demo
 
 **[🎯 Click here to try the live app](https://note-hub.onrender.com)** (Deployed on Render)
@@ -122,6 +132,17 @@ Example with Gunicorn:
 pip install gunicorn
 gunicorn -w 4 -b 0.0.0.0:8000 "simple_app:app"
 ```
+
+## 🔄 CI/CD Pipeline
+
+This project has automated testing, security scanning, and deployment configured:
+
+- **Automated Testing:** Python 3.9, 3.10, 3.11
+- **Code Quality:** Black, isort, flake8, bandit
+- **Security Scanning:** Trivy, Safety
+- **Auto-Deployment:** Render (Flask app) + GitHub Pages (documentation)
+
+See [CI_CD.md](CI_CD.md) for detailed pipeline documentation and setup instructions.
 
 ## ⚠️ Important Notes
 
