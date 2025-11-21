@@ -1,0 +1,25 @@
+# GitHub Code Owners
+# This file defines who should review changes to specific parts of the codebase
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+*                                   @thienng-it
+
+# Main application
+simple_app.py                        @thienng-it
+test_app.py                          @thienng-it
+
+# Templates
+/templates/                          @thienng-it
+
+# Configuration files
+requirements.txt                     @thienng-it
+runtime.txt                          @thienng-it
+Procfile                             @thienng-it
+
+# CI/CD Pipeline
+/.github/workflows/                  @thienng-it
+
+# Documentation
+*.md                                 @thienng-it
+/docs/                               @thienng-it
