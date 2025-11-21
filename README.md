@@ -4,32 +4,11 @@ A modern, clean, and feature-rich personal notes application built with Flask. P
 
 ## 🚀 Live Demo
 
-### 🌐 Live Website
 **[🎯 Click here to try the live app](https://note-hub.onrender.com)** (Deployed on Render)
 
-Login with:
-- Username: `admin`
-- Password: `change-me`
+**Default Login:** `admin` / `change-me`
 
 ---
-
-### 💻 Run Locally
-
-**Try it now!** The app is ready to run locally:
-
-```bash
-# Quick Start (3 steps)
-pip install -r requirements.txt
-python simple_app.py
-# Open http://127.0.0.1:5000 in your browser
-```
-
-**Default Credentials:**
-
-- Username: `admin`
-- Password: `change-me`
-
-⚠️ **Important:** Change the default password immediately after first login!
 
 ## ✨ Features
 
@@ -41,62 +20,6 @@ python simple_app.py
 - **🌙 Dark Mode** - Toggle between light and dark themes
 - **🔐 Secure** - CSRF protection, input validation, and HTML sanitization
 - **📊 Reading Time** - Automatic reading time estimation
-
-## 🎯 Demo Walkthrough
-
-### Step 1: Login
-
-1. Navigate to `http://127.0.0.1:5000`
-2. Enter the default credentials above
-3. Click "Login"
-
-### Step 2: Create a Note
-
-1. Click the "New Note" button
-2. Add a title and content using markdown
-3. Add tags (e.g., `demo`, `personal`)
-4. Click "Save Note"
-
-### Step 3: Explore Features
-
-- **Search:** Use the search bar to find notes by title or content
-- **Filter by Tags:** Click on tags to filter notes
-- **Dark Mode:** Toggle the theme in the top right
-- **Mark as Favorite:** Star your favorite notes
-- **Pin Notes:** Keep important notes at the top
-- **Edit/Delete:** Manage your notes from the note view
-
-### Step 4: Change Password
-
-1. Go to "Settings" or "Profile"
-2. Change your password to something secure
-3. Save your changes
-
-## 🔧 Detailed Quick Start
-
-1. **Install dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Run the app:**
-
-   ```bash
-   python simple_app.py
-   ```
-
-3. **Open your browser:**
-
-   ```
-   http://127.0.0.1:5000
-   ```
-
-4. **Login with default credentials:**
-   - Username: `admin`
-   - Password: `change-me`
-5. **Stop the server:**
-   - Press `Ctrl+C` in your terminal
 
 ## 📁 Project Structure
 
