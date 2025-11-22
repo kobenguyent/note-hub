@@ -6,7 +6,16 @@ from flask_wtf import FlaskForm
 from wtforms import (BooleanField, DateField, PasswordField, SelectField,
                      StringField, TextAreaField)
 from wtforms.validators import (DataRequired, EqualTo, Length,
-                                Optional as OptionalValidator)
+                                Optional as OptionalValidator, ValidationError)
+
+from .security import (PASSWORD_POLICY_MIN_LENGTH, PASSWORD_POLICY_MESSAGE,
+                       password_policy_errors)
+
+
+def validate_password_complexity(form, field):
+    errors = password_policy_errors(field.data)
+    if errors:
+        raise ValidationError(errors[0])
 
 
 class LoginForm(FlaskForm):
@@ -20,7 +29,15 @@ class Verify2FAForm(FlaskForm):
 
 class RegisterForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=64)])
-    password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
+    password = PasswordField(
+        "Password",
+        validators=[
+            DataRequired(),
+            Length(min=PASSWORD_POLICY_MIN_LENGTH),
+            validate_password_complexity,
+        ],
+        description=PASSWORD_POLICY_MESSAGE,
+    )
     password_confirm = PasswordField(
         "Confirm Password",
         validators=[DataRequired(), EqualTo("password", message="Passwords must match")],
@@ -46,7 +63,15 @@ class ForgotPasswordForm(FlaskForm):
 
 
 class ResetPasswordForm(FlaskForm):
-    password = PasswordField("New Password", validators=[DataRequired(), Length(min=6)])
+    password = PasswordField(
+        "New Password",
+        validators=[
+            DataRequired(),
+            Length(min=PASSWORD_POLICY_MIN_LENGTH),
+            validate_password_complexity,
+        ],
+        description=PASSWORD_POLICY_MESSAGE,
+    )
     password_confirm = PasswordField(
         "Confirm Password",
         validators=[DataRequired(), EqualTo("password", message="Passwords must match")],

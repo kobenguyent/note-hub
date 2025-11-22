@@ -50,7 +50,13 @@ def ensure_admin(username: str, password: str):
         has_user = session.execute(select(User.id)).first()
         if not has_user:
             admin = User(username=username)
-            admin.set_password(password)
+            try:
+                admin.set_password(password)
+            except ValueError as exc:
+                raise ValueError(
+                    "Default admin password does not satisfy the password policy. "
+                    "Set NOTES_ADMIN_PASSWORD to a compliant value."
+                ) from exc
             admin.created_at = datetime.now(timezone.utc)
             session.add(admin)
             session.commit()

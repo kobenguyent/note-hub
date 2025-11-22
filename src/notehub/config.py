@@ -13,7 +13,7 @@ class AppConfig:
 
     db_path: str = field(default_factory=lambda: os.getenv("NOTES_DB_PATH", "notes.db"))
     admin_username: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_USERNAME", "admin"))
-    admin_password: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_PASSWORD", "change-me"))
+    admin_password: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_PASSWORD", "ChangeMeNow!42"))
     secret_key: str = field(default_factory=lambda: os.getenv("FLASK_SECRET") or secrets.token_hex(32))
     max_content_length: int = 16 * 1024 * 1024
 

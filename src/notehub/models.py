@@ -11,6 +11,7 @@ from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
 from sqlalchemy.orm import relationship
 
 from .database import Base
+from .security import enforce_password_policy
 
 
 note_tag = Table(
@@ -37,8 +38,7 @@ class User(Base):
     def set_password(self, password: str):
         from werkzeug.security import generate_password_hash
 
-        if len(password) < 6:
-            raise ValueError("Password must be at least 6 characters")
+        enforce_password_policy(password)
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:

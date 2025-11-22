@@ -155,7 +155,7 @@ def main():
     print("=" * 60)
     
     # Test login
-    if not test_login('admin', 'change-me'):
+    if not test_login('admin', 'ChangeMeNow!42'):
         print("\n❌ Login failed. Cannot continue tests.")
         return
     
