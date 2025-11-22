@@ -30,22 +30,39 @@ A modern, clean, and feature-rich personal notes application built with Flask. P
 - **🌙 Dark Mode** - Toggle between light and dark themes
 - **🔐 Secure** - CSRF protection, input validation, and HTML sanitization
 - **📊 Reading Time** - Automatic reading time estimation
+- **🔑 Two-Factor Authentication (2FA)** - TOTP-based 2FA with QR code setup for enhanced security
 
 ## 📁 Project Structure
 
 ```
-joseph_note/
-├── simple_app.py          # Main application
-├── requirements.txt       # Python dependencies
-├── README.md             # This file
-├── notes.db              # SQLite database (created automatically)
-└── templates/            # HTML templates
-    ├── base.html         # Base layout
-    ├── index.html        # Notes list
-    ├── login.html        # Login page
-    ├── edit_note.html    # Create/edit notes
-    ├── view_note.html    # View single note
-    └── error.html        # Error pages
+note-hub/
+├── simple_app.py              # Main Flask application with 2FA support
+├── requirements.txt           # Python dependencies
+├── README.md                  # This file
+├── CI_CD.md                   # CI/CD pipeline documentation
+├── BRANCH_RULESET.md          # Branch protection ruleset configuration
+├── notes.db                   # SQLite database (created automatically)
+├── .github/
+│   ├── workflows/             # GitHub Actions CI/CD pipelines
+│   │   ├── ci-cd.yml         # Testing, linting, security scanning
+│   │   ├── deploy-render.yml # Auto-deploy to Render
+│   │   └── deploy-pages.yml  # Auto-deploy to GitHub Pages
+│   └── CODEOWNERS            # Code ownership rules
+├── docs/                      # GitHub Pages landing site
+│   ├── index.html            # Landing page
+│   └── .nojekyll             # Disable Jekyll processing
+└── templates/                 # HTML templates
+    ├── base.html             # Base layout
+    ├── index.html            # Notes list
+    ├── login.html            # Login page
+    ├── register.html         # Registration page
+    ├── edit_note.html        # Create/edit notes
+    ├── view_note.html        # View single note
+    ├── profile.html          # User profile & 2FA management
+    ├── setup_2fa.html        # 2FA setup with QR code
+    ├── verify_2fa.html       # 2FA verification on login
+    ├── verify_2fa_reset.html # 2FA bypass for password reset
+    └── error.html            # Error pages
 ```
 
 ## ⚙️ Configuration
@@ -74,6 +91,41 @@ export FLASK_SECRET="your-secret-key"        # Flask secret key
 - **HTML Sanitization** - Safe markdown rendering with bleach
 - **Secure Sessions** - Proper session management
 - **Password Hashing** - Passwords stored securely with Werkzeug
+- **Two-Factor Authentication (2FA)** - TOTP-based authentication with QR code setup
+
+## 🔑 Two-Factor Authentication (2FA)
+
+The app includes optional 2FA for enhanced security:
+
+1. **Setup 2FA**
+
+   - Navigate to Profile → Setup 2FA
+   - Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+   - Verify the 6-digit code to enable 2FA
+
+2. **Login with 2FA**
+
+   - Enter username and password
+   - When prompted, enter the 6-digit code from your authenticator app
+   - Access granted after successful verification
+
+3. **Password Reset**
+
+   - Can reset password via email verification
+   - 2FA can be bypassed during password reset process
+   - Re-enable 2FA after regaining access
+
+4. **Disable 2FA**
+   - Go to Profile page
+   - Click "Disable 2FA" to turn off 2FA protection
+
+**Supported Authenticator Apps:**
+
+- Google Authenticator
+- Microsoft Authenticator
+- Authy
+- 1Password
+- Any TOTP-compatible app
 
 ## 🎨 UI/UX Highlights
 
@@ -91,6 +143,9 @@ export FLASK_SECRET="your-secret-key"        # Flask secret key
 - **WTForms** - Form handling and validation
 - **Markdown** - Content rendering
 - **Bleach** - HTML sanitization
+- **PyOTP** - TOTP-based two-factor authentication
+- **qrcode** - QR code generation for 2FA setup
+- **Pillow** - Image processing for QR codes
 - **Tailwind CSS** - Modern styling
 
 ## 📝 Markdown Support

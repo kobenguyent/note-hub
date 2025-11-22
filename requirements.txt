@@ -1,28 +1,29 @@
 # Flask Notes App - Requirements
-# Lightweight requirements for personal use
+# Beautiful Notes App with 2FA support
+# Python 3.9+ required
 
-# Core Flask
+# Core Flask Framework
 Flask==3.0.0
 Flask-WTF==1.2.1
 WTForms==3.1.1
 
-# Database
+# Database & ORM
 SQLAlchemy>=2.0.23
 
-# Security & passwords
+# Security & Authentication
 Werkzeug==3.0.1
+pyotp==2.9.0  # Two-Factor Authentication (TOTP)
 
-# Content processing
+# Content Processing & Rendering
 Markdown==3.5.1
-bleach==6.1.0
+bleach==6.1.0  # HTML sanitization
 
-# Environment
+# 2FA QR Code Generation
+qrcode==7.4.2  # QR code generation
+Pillow>=11.0.0  # Image processing for QR codes
+
+# Environment & Configuration
 python-dotenv==1.0.0
 
-# Production server
+# Production Server
 gunicorn==21.2.0
-
-# 2FA Support
-pyotp==2.9.0
-qrcode==7.4.2
-Pillow>=11.0.0
