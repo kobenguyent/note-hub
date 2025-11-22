@@ -14,14 +14,25 @@ class AppConfig:
     db_path: str = field(default_factory=lambda: os.getenv("NOTES_DB_PATH", "notes.db"))
     admin_username: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_USERNAME", "admin"))
     admin_password: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_PASSWORD", "change-me"))
-    secret_key: str = field(default_factory=lambda: os.getenv("FLASK_SECRET", secrets.token_hex(32)))
+    secret_key: str = field(default_factory=lambda: os.getenv("FLASK_SECRET") or secrets.token_hex(32))
     max_content_length: int = 16 * 1024 * 1024
 
     @property
     def flask_settings(self) -> dict[str, object]:
+        # Ensure we have a valid secret key
+        secret = self.secret_key
+        if not secret or len(secret) < 16:
+            secret = secrets.token_hex(32)
+            
         return {
-            "SECRET_KEY": self.secret_key,
+            "SECRET_KEY": secret,
             "WTF_CSRF_ENABLED": True,
+            "WTF_CSRF_TIME_LIMIT": None,  # No time limit for CSRF tokens
+            "WTF_CSRF_SSL_STRICT": False,  # Allow both HTTP and HTTPS
+            "SESSION_COOKIE_SECURE": False,  # Allow cookies over HTTP (Render uses proxy)
+            "SESSION_COOKIE_HTTPONLY": True,
+            "SESSION_COOKIE_SAMESITE": "Lax",
+            "PERMANENT_SESSION_LIFETIME": 3600,  # 1 hour
             "MAX_CONTENT_LENGTH": self.max_content_length,
         }
 
