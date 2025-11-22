@@ -300,6 +300,13 @@
                 {% endif %}
             </div>
             
+            {% if config.RECAPTCHA_ENABLED %}
+            <!-- CAPTCHA Field -->
+            <div class="flex justify-center">
+                {{ form.recaptcha }}
+            </div>
+            {% endif %}
+            
             <!-- Register Button -->
             <button type="submit" class="btn-primary w-full py-3 px-4 rounded-lg font-medium text-base sm:text-lg">
                 <i class="fas fa-user-plus mr-2"></i>Create Account

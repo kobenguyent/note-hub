@@ -87,6 +87,10 @@ export NOTES_ADMIN_USERNAME="admin"
 export NOTES_ADMIN_PASSWORD="your-secure-password"
 export FLASK_SECRET="your-secret-key"
 export NOTES_DB_PATH="notes.db"
+
+# Optional: Enable CAPTCHA protection
+export RECAPTCHA_SITE_KEY="your-recaptcha-site-key"
+export RECAPTCHA_SECRET_KEY="your-recaptcha-secret-key"
 ```
 
 5. Run the application:
@@ -133,6 +137,24 @@ Ensure you set the required environment variables on your platform.
 - **Secure Sessions** - Proper session management
 - **Password Hashing** - Passwords stored securely with Werkzeug
 - **Two-Factor Authentication (2FA)** - TOTP-based authentication with QR code setup
+- **CAPTCHA Protection** - Optional reCAPTCHA v2 integration to prevent bots and automated attacks
+
+## 🤖 CAPTCHA Protection
+
+Optional CAPTCHA integration to protect against bots and automated attacks:
+
+1. **Setup:** Get reCAPTCHA keys from [Google reCAPTCHA Admin](https://www.google.com/recaptcha/admin)
+2. **Configure:** Set environment variables:
+   - `RECAPTCHA_SITE_KEY` - Public site key
+   - `RECAPTCHA_SECRET_KEY` - Secret key
+3. **Forms Protected:**
+   - Login form (prevents brute force attacks)
+   - Registration form (prevents bot registrations)
+   - Forgot password form (prevents abuse)
+
+**Note:** CAPTCHA is automatically enabled when keys are configured. Without keys, forms work normally without CAPTCHA.
+
+For detailed setup instructions, see [docs/CAPTCHA_SETUP.md](docs/CAPTCHA_SETUP.md).
 
 ## 🔑 Two-Factor Authentication (2FA)
 

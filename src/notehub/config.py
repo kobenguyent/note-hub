@@ -16,6 +16,8 @@ class AppConfig:
     admin_password: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_PASSWORD", "ChangeMeNow!42"))
     secret_key: str = field(default_factory=lambda: os.getenv("FLASK_SECRET") or secrets.token_hex(32))
     max_content_length: int = 16 * 1024 * 1024
+    recaptcha_site_key: str = field(default_factory=lambda: os.getenv("RECAPTCHA_SITE_KEY", ""))
+    recaptcha_secret_key: str = field(default_factory=lambda: os.getenv("RECAPTCHA_SECRET_KEY", ""))
 
     @property
     def flask_settings(self) -> dict[str, object]:
@@ -37,6 +39,12 @@ class AppConfig:
             "SESSION_COOKIE_DOMAIN": None,  # Let Flask handle domain automatically
             "PERMANENT_SESSION_LIFETIME": 3600,  # 1 hour
             "MAX_CONTENT_LENGTH": self.max_content_length,
+            "RECAPTCHA_ENABLED": bool(self.recaptcha_site_key and self.recaptcha_secret_key),
+            "RECAPTCHA_SITE_KEY": self.recaptcha_site_key,
+            "RECAPTCHA_SECRET_KEY": self.recaptcha_secret_key,
+            "RECAPTCHA_THEME": "light",
+            "RECAPTCHA_TYPE": "image",
+            "RECAPTCHA_SIZE": "normal",
         }
 
     @property

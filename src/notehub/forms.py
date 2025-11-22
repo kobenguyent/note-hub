@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from flask import current_app
 from flask_wtf import FlaskForm
+from flask_wtf.recaptcha import RecaptchaField
 from wtforms import (BooleanField, DateField, PasswordField, SelectField,
                      StringField, TextAreaField)
 from wtforms.validators import (DataRequired, EqualTo, Length,
@@ -21,6 +23,7 @@ def validate_password_complexity(form, field):
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=64)])
     password = PasswordField("Password", validators=[DataRequired()])
+    recaptcha = RecaptchaField()
 
 
 class Verify2FAForm(FlaskForm):
@@ -42,6 +45,7 @@ class RegisterForm(FlaskForm):
         "Confirm Password",
         validators=[DataRequired(), EqualTo("password", message="Passwords must match")],
     )
+    recaptcha = RecaptchaField()
 
 
 class NoteForm(FlaskForm):
@@ -60,6 +64,7 @@ class SearchForm(FlaskForm):
 
 class ForgotPasswordForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=64)])
+    recaptcha = RecaptchaField()
 
 
 class ResetPasswordForm(FlaskForm):
