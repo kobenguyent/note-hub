@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto p-6">
-    <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-3xl font-bold flex items-center">
@@ -30,7 +29,6 @@
         {% endif %}
     </div>
 
-    <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between">
@@ -81,9 +79,7 @@
         </div>
     </div>
 
-    <!-- User Info -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Account Information -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 class="text-xl font-semibold mb-4 flex items-center">
                 <i class="fas fa-info-circle mr-2 text-blue-600"></i>Account Information
@@ -128,11 +124,36 @@
                         <i class="fas fa-{{ 'moon' if user.theme == 'dark' else 'sun' }} mr-2"></i>{{ user.theme }}
                     </p>
                 </div>
+                
+                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Security</p>
+                    <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center {{ 'bg-green-100 text-green-600' if user.totp_secret else 'bg-gray-200 text-gray-500' }}">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Two-Factor Auth</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'Enabled' if user.totp_secret else 'Disabled' }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if user.totp_secret %}
+                        <form action="{{ url_for('disable_2fa') }}" method="POST" onsubmit="return confirm('Are you sure you want to disable 2FA? Your account will be less secure.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="text-sm text-red-600 hover:text-red-800">Disable</button>
+                        </form>
+                        {% else %}
+                        <a href="{{ url_for('setup_2fa') }}" class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                            Enable 2FA
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Sharing Statistics -->
         {% if is_own_profile %}
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 class="text-xl font-semibold mb-4 flex items-center">
@@ -168,7 +189,6 @@
         {% endif %}
     </div>
 
-    <!-- Recent Notes -->
     {% if is_own_profile and recent_notes %}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
@@ -198,7 +218,6 @@
     </div>
     {% endif %}
 
-    <!-- Notes Shared With Me -->
     {% if is_own_profile and shared_with_me %}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex items-center justify-between mb-4">
@@ -239,4 +258,3 @@
     {% endif %}
 </div>
 {% endblock %}
-
