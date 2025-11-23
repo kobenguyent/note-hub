@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased, selectinload
 
 from ..models import Note, ShareNote, Tag, User, note_tag
-from .utils import cleanup_orphaned_tags, parse_tags
+from .utils import parse_tags
 
 
 class NoteService:
@@ -35,9 +35,6 @@ class NoteService:
             # Only add if not already attached to avoid duplicate key error
             if tag not in note.tags:
                 note.tags.append(tag)
-        
-        # Clean up orphaned tags after updating
-        cleanup_orphaned_tags(session)
     
     @staticmethod
     def get_notes_for_user(

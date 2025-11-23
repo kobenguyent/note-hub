@@ -74,6 +74,9 @@ def register_note_routes(app):
                             note.tags.append(tag)
                     s.add(note)
                     s.commit()
+                    # Clean up orphaned tags after commit
+                    cleanup_orphaned_tags(s)
+                    s.commit()
                     note_id = note.id
                     flash("Note created!", "success")
                     return redirect(url_for("view_note", note_id=note_id))
@@ -138,6 +141,9 @@ def register_note_routes(app):
                         # Only add if not already attached to avoid duplicate key error
                         if tag not in note.tags:
                             note.tags.append(tag)
+                    s.commit()
+                    # Clean up orphaned tags after commit
+                    cleanup_orphaned_tags(s)
                     s.commit()
                     flash("Note updated!", "success")
                     return redirect(url_for("view_note", note_id=note_id))
