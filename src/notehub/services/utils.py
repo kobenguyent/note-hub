@@ -45,3 +45,23 @@ def parse_tags(tag_string: str) -> List[str]:
     if not tag_string:
         return []
     return [normalize_tag(tag.strip()) for tag in tag_string.split(",") if tag.strip()]
+
+
+def cleanup_orphaned_tags(session):
+    """Remove tags that are not associated with any notes.
+    
+    This is called after updating or deleting notes to keep the tags table clean.
+    Only tags with no notes are deleted.
+    
+    Args:
+        session: Database session
+    """
+    from sqlalchemy import delete, exists, select
+    from ..models import Tag, note_tag
+    
+    # Delete tags that are not associated with any notes using a single SQL query
+    # This is more efficient than loading all tags into memory
+    stmt = delete(Tag).where(
+        ~exists().where(note_tag.c.tag_id == Tag.id)
+    )
+    session.execute(stmt)

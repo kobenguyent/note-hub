@@ -226,4 +226,51 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.querySelector('form[method="GET"]');
+    const queryInput = document.querySelector('input[name="query"]');
+    const searchButton = searchForm.querySelector('button[type="submit"]');
+    
+    if (searchForm && queryInput && searchButton) {
+        // Create inline error message element
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'hidden mt-2 text-sm text-red-600 dark:text-red-400';
+        errorDiv.textContent = 'Search query must be at least 3 characters long.';
+        queryInput.parentElement.appendChild(errorDiv);
+        
+        searchForm.addEventListener('submit', function(e) {
+            const query = queryInput.value.trim();
+            
+            // If query is not empty but less than 3 characters, prevent submission
+            if (query && query.length < 3) {
+                e.preventDefault();
+                errorDiv.classList.remove('hidden');
+                queryInput.focus();
+                queryInput.classList.add('border-red-500');
+                
+                // Hide error after 3 seconds
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                    queryInput.classList.remove('border-red-500');
+                }, 3000);
+                
+                return false;
+            } else {
+                errorDiv.classList.add('hidden');
+                queryInput.classList.remove('border-red-500');
+            }
+        });
+        
+        // Clear error on input
+        queryInput.addEventListener('input', function() {
+            if (queryInput.value.trim().length >= 3 || queryInput.value.trim().length === 0) {
+                errorDiv.classList.add('hidden');
+                queryInput.classList.remove('border-red-500');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

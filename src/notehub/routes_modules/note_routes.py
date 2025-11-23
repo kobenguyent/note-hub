@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased, joinedload, selectinload
 from ..forms import NoteForm, SearchForm, ShareNoteForm
 from ..models import Note, ShareNote, Tag, User, note_tag
 from ..services.note_service import NoteService
-from ..services.utils import current_user, db, login_required, parse_tags
+from ..services.utils import cleanup_orphaned_tags, current_user, db, login_required, parse_tags
 
 
 def register_note_routes(app):
@@ -23,6 +23,11 @@ def register_note_routes(app):
         tag_filter = form.tag_filter.data or ""
         view_type = request.args.get('view', 'all')
         user = current_user()
+        
+        # Only apply search if query has at least 3 characters
+        if query and len(query.strip()) < 3:
+            query = ""
+            flash("Search query must be at least 3 characters long.", "warning")
 
         with db() as s:
             notes, all_tags = NoteService.get_notes_for_user(
@@ -64,14 +69,21 @@ def register_note_routes(app):
                         if not tag:
                             tag = Tag(name=tag_name)
                             s.add(tag)
-                        note.tags.append(tag)
+                        # Only add if not already attached to avoid duplicate key error
+                        if tag not in note.tags:
+                            note.tags.append(tag)
                     s.add(note)
+                    s.flush()  # Flush to make note visible to cleanup query
+                    # Clean up orphaned tags in the same transaction
+                    cleanup_orphaned_tags(s)
                     s.commit()
                     note_id = note.id
                     flash("Note created!", "success")
                     return redirect(url_for("view_note", note_id=note_id))
             except Exception as exc:
-                flash(f"Error creating note: {exc}", "error")
+                import logging
+                logging.error(f"Error creating note: {exc}")
+                flash("Error creating note. Please try again.", "error")
         if request.method == "GET":
             form = NoteForm()
         return render_template("edit_note.html", form=form, note=None, is_edit=False)
@@ -126,12 +138,19 @@ def register_note_routes(app):
                         if not tag:
                             tag = Tag(name=tag_name)
                             s.add(tag)
-                        note.tags.append(tag)
+                        # Only add if not already attached to avoid duplicate key error
+                        if tag not in note.tags:
+                            note.tags.append(tag)
+                    s.flush()  # Flush to make changes visible to cleanup query
+                    # Clean up orphaned tags in the same transaction
+                    cleanup_orphaned_tags(s)
                     s.commit()
                     flash("Note updated!", "success")
                     return redirect(url_for("view_note", note_id=note_id))
                 except Exception as exc:
-                    flash(f"Error updating note: {exc}", "error")
+                    import logging
+                    logging.error(f"Error updating note: {exc}")
+                    flash("Error updating note. Please try again.", "error")
 
             preview_html = note.render_markdown()
             return render_template("edit_note.html", form=form, note=note, preview_html=preview_html, is_edit=True)
@@ -150,10 +169,14 @@ def register_note_routes(app):
                 else:
                     s.execute(text("DELETE FROM share_notes WHERE note_id = :note_id"), {"note_id": note_id})
                     s.delete(note)
+                    # Clean up orphaned tags after deleting the note
+                    cleanup_orphaned_tags(s)
                     s.commit()
                     flash("Note deleted", "success")
         except Exception as exc:
-            flash(f"Error deleting note: {exc}", "error")
+            import logging
+            logging.error(f"Error deleting note: {exc}")
+            flash("Error deleting note. Please try again.", "error")
         return redirect(url_for("index"))
 
     @app.route("/note/<int:note_id>/toggle-pin", methods=["POST"])

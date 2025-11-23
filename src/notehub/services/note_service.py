@@ -32,7 +32,9 @@ class NoteService:
             if not tag:
                 tag = Tag(name=tag_name)
                 session.add(tag)
-            note.tags.append(tag)
+            # Only add if not already attached to avoid duplicate key error
+            if tag not in note.tags:
+                note.tags.append(tag)
     
     @staticmethod
     def get_notes_for_user(
@@ -91,7 +93,8 @@ class NoteService:
         if query:
             like_term = f"%{query}%"
             tag_alias = aliased(Tag)
-            stmt = stmt.outerjoin(note_tag).outerjoin(tag_alias).where(
+            note_tag_alias = aliased(note_tag)
+            stmt = stmt.outerjoin(note_tag_alias).outerjoin(tag_alias).where(
                 (Note.title.ilike(like_term)) |
                 (Note.body.ilike(like_term)) |
                 (tag_alias.name.ilike(like_term))
@@ -100,7 +103,14 @@ class NoteService:
         # Apply tag filter
         if tag_filter:
             tag_alias2 = aliased(Tag)
-            stmt = stmt.join(note_tag).join(tag_alias2).where(
+            note_tag_alias2 = aliased(note_tag)
+            stmt = stmt.join(
+                note_tag_alias2,
+                (Note.id == note_tag_alias2.c.note_id)
+            ).join(
+                tag_alias2,
+                (note_tag_alias2.c.tag_id == tag_alias2.id)
+            ).where(
                 tag_alias2.name.ilike(f"%{tag_filter}%")
             )
         

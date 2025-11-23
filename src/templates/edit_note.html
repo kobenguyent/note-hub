@@ -231,29 +231,42 @@
             updatePreview();
         }
         
-        // Preview toggle for mobile
+        // Preview toggle for all screen sizes
         if (previewToggle && previewPanel) {
-            previewToggle.addEventListener('click', function() {
-                previewPanel.classList.toggle('hidden');
+            // Start with preview hidden on mobile
+            if (window.innerWidth < 1024) {
+                previewPanel.classList.add('hidden');
+            }
+            
+            // Update button text based on initial state
+            function updateToggleButton() {
                 const isHidden = previewPanel.classList.contains('hidden');
                 previewToggle.innerHTML = `
                     <i class="fas fa-${isHidden ? 'eye' : 'eye-slash'} mr-2"></i>
                     ${isHidden ? 'Show' : 'Hide'} Preview
                 `;
+            }
+            
+            updateToggleButton();
+            
+            previewToggle.addEventListener('click', function() {
+                previewPanel.classList.toggle('hidden');
+                updateToggleButton();
             });
         }
     });
 </script>
 
 <style>
-    /* Responsive preview */
+    /* Preview panel toggle */
+    #previewPanel.hidden {
+        display: none;
+    }
+    
+    /* On mobile, start with preview hidden by default */
     @media (max-width: 1024px) {
-        #previewPanel {
-            display: none;
-        }
-        
-        #previewPanel:not(.hidden) {
-            display: block;
+        .grid-cols-1 {
+            grid-template-columns: 1fr;
         }
     }
 </style>
