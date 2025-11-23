@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from ..forms import (ForgotPasswordForm, LoginForm, RegisterForm,
                      ResetPasswordForm, Setup2FAForm, Verify2FAForm)
 from ..models import Invitation, PasswordResetToken, User
+from ..services.auth_service import AuthService
 from ..services.utils import current_user, db, login_required
 
 
@@ -30,14 +31,14 @@ def register_auth_routes(app):
         form = LoginForm()
         if form.validate_on_submit():
             with db() as s:
-                user = s.execute(select(User).where(User.username == form.username.data)).scalar_one_or_none()
-                if user and user.check_password(form.password.data):
+                user = AuthService.authenticate_user(s, form.username.data, form.password.data)
+                if user:
                     if user.totp_secret:
                         session['pre_2fa_user_id'] = user.id
                         return redirect(url_for('verify_2fa'))
 
                     session["user_id"] = user.id
-                    user.last_login = datetime.now(timezone.utc)
+                    AuthService.update_last_login(s, user)
                     s.commit()
                     flash(f"Welcome back, {user.username}!", "success")
                     return redirect(url_for("index"))
@@ -88,78 +89,26 @@ def register_auth_routes(app):
 
         form = RegisterForm()
         if form.validate_on_submit():
-            # Validate and sanitize input
-            username = form.username.data.strip()
-            password = form.password.data
-            
-            # Validate password policy before attempting database operations
-            from ..security import password_policy_errors
-            policy_errors = password_policy_errors(password)
-            if policy_errors:
-                flash(f"Password policy violation: {policy_errors[0]}", "error")
-                return render_template("register.html", form=form, invitation=invitation)
-            
-            # Attempt to create user with proper transaction handling
-            try:
-                with db() as s:
-                    # Double-check username uniqueness within transaction
-                    # Use SELECT FOR UPDATE to prevent race conditions
-                    existing_user = s.execute(
-                        select(User).where(User.username == username)
-                    ).scalar_one_or_none()
-                    
-                    if existing_user:
-                        flash("Username already exists.", "error")
-                        return render_template("register.html", form=form, invitation=invitation)
-                    
-                    # Create new user - this will be saved to DB in real-time on commit
-                    new_user = User(username=username)
-                    try:
-                        new_user.set_password(password)  # Enforces password policy
-                    except ValueError as e:
-                        flash(f"Password error: {str(e)}", "error")
-                        return render_template("register.html", form=form, invitation=invitation)
-                    
-                    s.add(new_user)
-                    
-                    # Flush to get the user ID before updating invitation
-                    s.flush()
-                    
-                    # Handle invitation if present
-                    if token and invitation:
-                        # Re-fetch invitation in this transaction to ensure consistency
-                        invitation = s.get(Invitation, invitation.id)
-                        if invitation and invitation.is_valid():
-                            invitation.used = True
-                            invitation.used_by_id = new_user.id
-                            s.add(invitation)
-                    
-                    # Commit transaction - triggers real-time save to database
+            with db() as s:
+                success, message, new_user = AuthService.register_user(
+                    s,
+                    form.username.data,
+                    form.password.data,
+                    token
+                )
+                
+                if success:
                     s.commit()
-                    
-                    # Success logging
                     app.logger.info(
                         f"✅ User registration successful | "
-                        f"Username: {username} | "
+                        f"Username: {new_user.username} | "
                         f"ID: {new_user.id} | "
                         f"Saved to DB: Real-time"
                     )
-                    
-                    flash("Account created successfully! Please log in.", "success")
+                    flash(message, "success")
                     return redirect(url_for("login"))
-                    
-            except IntegrityError as e:
-                # Handle database constraint violations (e.g., duplicate username)
-                app.logger.error(f"❌ Registration failed - Integrity error: {str(e)}")
-                flash("Username already exists. Please choose a different username.", "error")
-            except SQLAlchemyError as e:
-                # Handle other database errors
-                app.logger.error(f"❌ Registration failed - Database error: {str(e)}")
-                flash("An error occurred during registration. Please try again.", "error")
-            except Exception as e:
-                # Handle any unexpected errors
-                app.logger.error(f"❌ Registration failed - Unexpected error: {str(e)}", exc_info=True)
-                flash("An unexpected error occurred. Please try again.", "error")
+                else:
+                    flash(message, "error")
 
         return render_template("register.html", form=form, invitation=invitation)
 
@@ -278,20 +227,22 @@ def register_auth_routes(app):
             return redirect(url_for("index"))
         form = ResetPasswordForm()
 
+        if form.validate_on_submit():
+            with db() as s:
+                success, message = AuthService.reset_password(s, token, form.password.data)
+                if success:
+                    s.commit()
+                    flash(message, "success")
+                    return redirect(url_for("login"))
+                else:
+                    flash(message, "error")
+                    return redirect(url_for("forgot_password"))
+
+        # Check if token is valid for GET request
         with db() as s:
             reset_token = s.execute(select(PasswordResetToken).where(PasswordResetToken.token == token)).scalar_one_or_none()
-
             if not reset_token or not reset_token.is_valid():
                 flash("Invalid or expired reset token.", "error")
                 return redirect(url_for("forgot_password"))
 
-            if form.validate_on_submit():
-                user = s.get(User, reset_token.user_id)
-                if user:
-                    user.set_password(form.password.data)
-                    reset_token.used = True
-                    s.commit()
-                    flash("Password reset successfully!", "success")
-                    return redirect(url_for("login"))
-
-            return render_template("reset_password.html", form=form, token=token)
+        return render_template("reset_password.html", form=form, token=token)
