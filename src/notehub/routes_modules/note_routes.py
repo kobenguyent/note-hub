@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased, joinedload, selectinload
 from ..forms import NoteForm, SearchForm, ShareNoteForm
 from ..models import Note, ShareNote, Tag, User, note_tag
 from ..services.note_service import NoteService
-from ..services.utils import current_user, db, login_required, parse_tags
+from ..services.utils import cleanup_orphaned_tags, current_user, db, login_required, parse_tags
 
 
 def register_note_routes(app):
@@ -158,6 +158,8 @@ def register_note_routes(app):
                 else:
                     s.execute(text("DELETE FROM share_notes WHERE note_id = :note_id"), {"note_id": note_id})
                     s.delete(note)
+                    # Clean up orphaned tags after deleting the note
+                    cleanup_orphaned_tags(s)
                     s.commit()
                     flash("Note deleted", "success")
         except Exception as exc:
