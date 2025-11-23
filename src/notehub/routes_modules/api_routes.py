@@ -1,10 +1,11 @@
-"""API routes with JWT authentication."""
+"""API routes with JWT authentication and OpenAPI documentation."""
 
 from __future__ import annotations
 
 from functools import wraps
 
 from flask import jsonify, request
+from flasgger import swag_from
 from sqlalchemy import select
 
 from ..models import Note, Task, User
@@ -56,7 +57,55 @@ def register_api_routes(app):
     
     @app.route("/api/auth/login", methods=["POST"])
     def api_login():
-        """API login endpoint - returns JWT tokens."""
+        """API login endpoint - returns JWT tokens.
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Username for authentication
+                password:
+                  type: string
+                  description: User password
+                totp_code:
+                  type: string
+                  description: 2FA code (required if 2FA is enabled)
+        responses:
+          200:
+            description: Login successful
+            schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                refresh_token:
+                  type: string
+                token_type:
+                  type: string
+                expires_in:
+                  type: integer
+                user:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    username:
+                      type: string
+                    email:
+                      type: string
+          401:
+            description: Invalid credentials or 2FA required
+        """
         data = request.get_json()
         
         if not data or 'username' not in data or 'password' not in data:
@@ -293,3 +342,166 @@ def register_api_routes(app):
                     'created_at': task.created_at.isoformat() if task.created_at else None
                 }
             }), 201
+    
+    @app.route("/api/notes/<int:note_id>", methods=["PUT", "PATCH"])
+    @jwt_required
+    def api_update_note(user_id, note_id):
+        """Update an existing note."""
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'Request body is required'}), 400
+        
+        with db() as s:
+            user = s.get(User, user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            note, has_access, can_edit = NoteService.check_note_access(s, note_id, user)
+            
+            if not note:
+                return jsonify({'error': 'Note not found'}), 404
+            
+            if not has_access:
+                return jsonify({'error': 'Access denied'}), 403
+            
+            if not can_edit:
+                return jsonify({'error': 'You do not have edit permissions for this note'}), 403
+            
+            # Update note using service
+            updated_note = NoteService.update_note(
+                s, note, user,
+                data.get('title', note.title),
+                data.get('body', note.body),
+                data.get('tags', ','.join(tag.name for tag in note.tags)),
+                data.get('pinned') if 'pinned' in data else None,
+                data.get('favorite') if 'favorite' in data else None,
+                data.get('archived') if 'archived' in data else None
+            )
+            s.commit()
+            
+            return jsonify({
+                'note': {
+                    'id': updated_note.id,
+                    'title': updated_note.title,
+                    'body': updated_note.body,
+                    'pinned': updated_note.pinned,
+                    'favorite': updated_note.favorite,
+                    'archived': updated_note.archived,
+                    'updated_at': updated_note.updated_at.isoformat() if updated_note.updated_at else None,
+                    'tags': [{'id': tag.id, 'name': tag.name} for tag in updated_note.tags]
+                }
+            }), 200
+    
+    @app.route("/api/notes/<int:note_id>", methods=["DELETE"])
+    @jwt_required
+    def api_delete_note(user_id, note_id):
+        """Delete a note."""
+        with db() as s:
+            user = s.get(User, user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            note = s.get(Note, note_id)
+            if not note:
+                return jsonify({'error': 'Note not found'}), 404
+            
+            # Only owner can delete
+            if note.owner_id != user.id:
+                return jsonify({'error': 'Only the note owner can delete it'}), 403
+            
+            s.delete(note)
+            s.commit()
+            
+            return jsonify({'message': 'Note deleted successfully'}), 200
+    
+    @app.route("/api/tasks/<int:task_id>", methods=["GET"])
+    @jwt_required
+    def api_get_task(user_id, task_id):
+        """Get a specific task."""
+        with db() as s:
+            user = s.get(User, user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            task = TaskService.check_task_access(s, task_id, user)
+            
+            if not task:
+                return jsonify({'error': 'Task not found or access denied'}), 404
+            
+            return jsonify({
+                'task': {
+                    'id': task.id,
+                    'title': task.title,
+                    'description': task.description,
+                    'completed': task.completed,
+                    'priority': task.priority,
+                    'due_date': task.due_date.isoformat() if task.due_date else None,
+                    'created_at': task.created_at.isoformat() if task.created_at else None,
+                    'is_overdue': task.is_overdue
+                }
+            }), 200
+    
+    @app.route("/api/tasks/<int:task_id>", methods=["PUT", "PATCH"])
+    @jwt_required
+    def api_update_task(user_id, task_id):
+        """Update an existing task."""
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'Request body is required'}), 400
+        
+        with db() as s:
+            user = s.get(User, user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            task = TaskService.check_task_access(s, task_id, user)
+            
+            if not task:
+                return jsonify({'error': 'Task not found or access denied'}), 404
+            
+            # Handle completed toggle
+            if 'completed' in data:
+                task.completed = data['completed']
+            
+            # Update other fields if provided
+            updated_task = TaskService.update_task(
+                s, task,
+                data.get('title', task.title),
+                data.get('description', task.description),
+                data.get('due_date', task.due_date),
+                data.get('priority', task.priority)
+            )
+            s.commit()
+            
+            return jsonify({
+                'task': {
+                    'id': updated_task.id,
+                    'title': updated_task.title,
+                    'description': updated_task.description,
+                    'completed': updated_task.completed,
+                    'priority': updated_task.priority,
+                    'due_date': updated_task.due_date.isoformat() if updated_task.due_date else None,
+                    'is_overdue': updated_task.is_overdue
+                }
+            }), 200
+    
+    @app.route("/api/tasks/<int:task_id>", methods=["DELETE"])
+    @jwt_required
+    def api_delete_task(user_id, task_id):
+        """Delete a task."""
+        with db() as s:
+            user = s.get(User, user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            task = TaskService.check_task_access(s, task_id, user)
+            
+            if not task:
+                return jsonify({'error': 'Task not found or access denied'}), 404
+            
+            s.delete(task)
+            s.commit()
+            
+            return jsonify({'message': 'Task deleted successfully'}), 200
