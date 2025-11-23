@@ -88,8 +88,17 @@ def register_api_routes(app):
                 user_count = len(result.fetchall())
                 
                 # Get database path from environment or config
+                from urllib.parse import urlparse
                 db_path = os.getenv("NOTES_DB_PATH", "notes.db")
-                db_exists = os.path.exists(db_path) if not db_path.startswith('sqlite:') else os.path.exists(db_path.replace('sqlite:///', ''))
+                
+                # Parse database path - handle both file paths and SQLite URIs
+                if db_path.startswith('sqlite:'):
+                    parsed = urlparse(db_path)
+                    actual_path = parsed.path.lstrip('/')
+                    db_exists = os.path.exists(actual_path)
+                else:
+                    actual_path = db_path
+                    db_exists = os.path.exists(db_path)
                 
                 return jsonify({
                     'status': 'healthy',

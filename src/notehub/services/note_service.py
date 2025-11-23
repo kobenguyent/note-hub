@@ -97,10 +97,7 @@ class NoteService:
             like_term = f"%{query}%"
             tag_alias = aliased(Tag)
             note_tag_alias = aliased(note_tag)
-            stmt = stmt.outerjoin(note_tag_alias).outerjoin(
-                tag_alias, 
-                (note_tag_alias.c.tag_id == tag_alias.id)
-            ).where(
+            stmt = stmt.outerjoin(note_tag_alias).outerjoin(tag_alias).where(
                 (Note.title.ilike(like_term)) |
                 (Note.body.ilike(like_term)) |
                 (tag_alias.name.ilike(like_term))

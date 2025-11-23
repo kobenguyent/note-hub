@@ -74,8 +74,8 @@ def ensure_admin(username: str, password: str):
             logger.info(f"✅ Created admin user: {username} / {password}")
             print(f"Created admin user: {username} / {password}")
         else:
-            logger.info(f"✅ Database already has users. Skipping admin creation.")
-            logger.info(f"📊 If you can't log in, the database is persisting correctly but you may have the wrong credentials.")
+            logger.info(f"✅ Database already has users. Admin user already exists.")
+            logger.info(f"💡 To log in, use existing credentials. Reset password via 'Forgot Password' if needed.")
     except Exception as e:
         logger.error(f"❌ Error during admin user check/creation: {e}")
         session.rollback()

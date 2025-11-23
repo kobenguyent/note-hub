@@ -56,13 +56,12 @@ def cleanup_orphaned_tags(session):
     Args:
         session: Database session
     """
-    from sqlalchemy import select
-    from ..models import Tag
+    from sqlalchemy import delete, exists, select
+    from ..models import Tag, note_tag
     
-    # Get all tags
-    tags = session.execute(select(Tag)).scalars().all()
-    
-    # Delete tags with no notes
-    for tag in tags:
-        if len(tag.notes) == 0:
-            session.delete(tag)
+    # Delete tags that are not associated with any notes using a single SQL query
+    # This is more efficient than loading all tags into memory
+    stmt = delete(Tag).where(
+        ~exists().where(note_tag.c.tag_id == Tag.id)
+    )
+    session.execute(stmt)
