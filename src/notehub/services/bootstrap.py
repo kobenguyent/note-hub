@@ -11,12 +11,28 @@ from ..models import User
 
 
 def migrate_database():
-    """Ensure legacy SQLite databases gain the newer columns."""
+    """Ensure legacy databases gain the newer columns."""
     session = SessionLocal()
     try:
         migrations_applied = []
-        result = session.execute(text("PRAGMA table_info(users)"))
-        user_columns = {row[1]: row for row in result.fetchall()}
+        
+        # Check if we're using MySQL or SQLite
+        # MySQL uses INFORMATION_SCHEMA, SQLite uses PRAGMA
+        try:
+            # Try MySQL first
+            result = session.execute(text("""
+                SELECT COLUMN_NAME 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'users'
+            """))
+            user_columns = {row[0] for row in result.fetchall()}
+            is_mysql = True
+        except:
+            # Fall back to SQLite
+            result = session.execute(text("PRAGMA table_info(users)"))
+            user_columns = {row[1]: row for row in result.fetchall()}
+            is_mysql = False
 
         def ensure(column: str, ddl: str, patch: str | None = None):
             if column not in user_columns:
@@ -25,14 +41,23 @@ def migrate_database():
                     session.execute(text(patch))
                 migrations_applied.append(f"users.{column}")
 
-        ensure("theme", "ALTER TABLE users ADD COLUMN theme VARCHAR(20) DEFAULT 'light'",
-               "UPDATE users SET theme = 'light' WHERE theme IS NULL")
-        ensure("created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME",
-               "UPDATE users SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
-        ensure("last_login", "ALTER TABLE users ADD COLUMN last_login DATETIME")
-        ensure("bio", "ALTER TABLE users ADD COLUMN bio TEXT")
-        ensure("email", "ALTER TABLE users ADD COLUMN email VARCHAR(255)")
-        ensure("totp_secret", "ALTER TABLE users ADD COLUMN totp_secret VARCHAR(32)")
+        # Apply migrations based on database type
+        if is_mysql:
+            ensure("theme", "ALTER TABLE users ADD COLUMN theme VARCHAR(20) DEFAULT 'light'")
+            ensure("created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP")
+            ensure("last_login", "ALTER TABLE users ADD COLUMN last_login DATETIME")
+            ensure("bio", "ALTER TABLE users ADD COLUMN bio TEXT")
+            ensure("email", "ALTER TABLE users ADD COLUMN email VARCHAR(255)")
+            ensure("totp_secret", "ALTER TABLE users ADD COLUMN totp_secret VARCHAR(32)")
+        else:
+            ensure("theme", "ALTER TABLE users ADD COLUMN theme VARCHAR(20) DEFAULT 'light'",
+                   "UPDATE users SET theme = 'light' WHERE theme IS NULL")
+            ensure("created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME",
+                   "UPDATE users SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+            ensure("last_login", "ALTER TABLE users ADD COLUMN last_login DATETIME")
+            ensure("bio", "ALTER TABLE users ADD COLUMN bio TEXT")
+            ensure("email", "ALTER TABLE users ADD COLUMN email VARCHAR(255)")
+            ensure("totp_secret", "ALTER TABLE users ADD COLUMN totp_secret VARCHAR(32)")
 
         if migrations_applied:
             session.commit()

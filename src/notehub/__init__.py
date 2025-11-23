@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).resolve().parents[2] / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFError
 from werkzeug.middleware.proxy_fix import ProxyFix

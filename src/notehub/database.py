@@ -56,42 +56,26 @@ def init_database(database_uri: str):
     """Bind the SQLAlchemy session/metadata to the configured database."""
     global _engine
     
-    # Ensure database directory exists for SQLite databases
-    if database_uri.startswith('sqlite:///'):
-        db_path = database_uri.replace('sqlite:///', '')
-        db_dir = os.path.dirname(db_path)
-        
-        # Log database location for debugging persistence issues
-        logger.info(f"🗄️  Database file path: {db_path}")
-        logger.info(f"📁 Database directory: {db_dir}")
-        
-        if db_dir and not os.path.exists(db_dir):
-            try:
-                os.makedirs(db_dir, exist_ok=True)
-                logger.info(f"✅ Created database directory: {db_dir}")
-            except Exception as e:
-                logger.error(f"❌ Failed to create database directory {db_dir}: {e}")
-                raise
-        
-        # Verify directory is writable
-        if db_dir and os.path.exists(db_dir):
-            if not os.access(db_dir, os.W_OK):
-                logger.error(f"❌ Database directory is not writable: {db_dir}")
-                raise PermissionError(f"Cannot write to database directory: {db_dir}")
-            logger.info(f"✅ Database directory is writable: {db_dir}")
-        
-        # Check if database file exists
-        if os.path.exists(db_path):
-            file_size = os.path.getsize(db_path)
-            logger.info(f"✅ Existing database found: {db_path} ({file_size} bytes)")
-        else:
-            logger.info(f"🆕 New database will be created: {db_path}")
+    # Log database connection information
+    logger.info(f"🗄️  Initializing database connection: {database_uri.split('@')[-1] if '@' in database_uri else database_uri}")
+    
+    # MySQL-specific connection arguments
+    connect_args = {}
+    if database_uri.startswith('mysql'):
+        # Configure MySQL connection pooling and timeout settings
+        connect_args = {
+            'connect_timeout': 10,
+            'charset': 'utf8mb4'
+        }
     
     _engine = create_engine(
         database_uri, 
         echo=False,
         pool_pre_ping=True,  # Verify connections before use
         pool_recycle=3600,   # Recycle connections after 1 hour
+        pool_size=10,        # Connection pool size (good for MySQL)
+        max_overflow=20,     # Allow up to 20 additional connections
+        connect_args=connect_args
     )
     SessionLocal.remove()
     SessionLocal.configure(bind=_engine, expire_on_commit=False)

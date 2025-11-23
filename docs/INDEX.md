@@ -1,0 +1,57 @@
+# NoteHub Documentation Index
+
+Welcome to the NoteHub documentation. This index helps you navigate all available documentation.
+
+## 📖 Main Documentation
+
+- [README](README.md) - Complete project overview, features, installation, and quick start guide
+
+## 🏗️ Architecture
+
+- [ARCHITECTURE](architecture/ARCHITECTURE.md) - Complete system design and architecture patterns
+- [ARCHITECTURE_IMPROVEMENTS](architecture/ARCHITECTURE_IMPROVEMENTS.md) - Architecture enhancements and improvements
+- [DATABASE_FLOW](architecture/DATABASE_FLOW.md) - Database schema and data flow
+- [DATABASE_PERSISTENCE_FIX](architecture/DATABASE_PERSISTENCE_FIX.md) - Database persistence fixes and solutions
+
+## 🔌 API Documentation
+
+- [API_CHANGELOG](api/API_CHANGELOG.md) - API version history and changes
+- [JWT_API](api/JWT_API.md) - JWT authentication API documentation
+
+## 📚 Guides
+
+- [DEPLOYMENT](guides/DEPLOYMENT.md) - Deployment guide for production environments
+- [MIGRATION_GUIDE](guides/MIGRATION_GUIDE.md) - Database migration guide
+- [MYSQL_MIGRATION_GUIDE](guides/MYSQL_MIGRATION_GUIDE.md) - MySQL-specific migration guide
+- [MYSQL_MIGRATION_SUMMARY](guides/MYSQL_MIGRATION_SUMMARY.md) - MySQL migration summary
+- [PERFORMANCE_GUIDE](guides/PERFORMANCE_GUIDE.md) - Performance optimization guide
+- [CONTRIBUTING](guides/CONTRIBUTING.md) - Contribution guidelines
+- [CONFIG](guides/CONFIG.md) - Configuration guide
+- [SCRIPTS](guides/SCRIPTS.md) - Scripts documentation
+
+## 🔒 Security
+
+- [SECURITY](security/SECURITY.md) - Security best practices and guidelines
+- [SECURITY_ATTACK_PREVENTION](security/SECURITY_ATTACK_PREVENTION.md) - Attack prevention strategies
+- [CAPTCHA_IMPLEMENTATION](security/CAPTCHA_IMPLEMENTATION.md) - CAPTCHA implementation details
+- [CAPTCHA_SETUP](security/CAPTCHA_SETUP.md) - CAPTCHA setup guide
+
+## 📋 Project Management
+
+- [BRANCH_RULESET](project/BRANCH_RULESET.md) - Git branch rules and workflow
+- [CI_CD](project/CI_CD.md) - CI/CD pipeline documentation
+- [COMPLETED_TASKS](project/COMPLETED_TASKS.md) - Completed tasks and features
+- [ENHANCEMENT_SUMMARY](project/ENHANCEMENT_SUMMARY.md) - Enhancement summaries
+- [FINAL_SUMMARY](project/FINAL_SUMMARY.md) - Project final summary
+- [RELEASE_NOTES](project/RELEASE_NOTES.md) - Release notes and version history
+
+---
+
+## Quick Links
+
+- **Getting Started**: [README](README.md)
+- **Deployment**: [DEPLOYMENT](guides/DEPLOYMENT.md)
+- **Architecture**: [ARCHITECTURE](architecture/ARCHITECTURE.md)
+- **API Docs**: [API_CHANGELOG](api/API_CHANGELOG.md)
+- **Security**: [SECURITY](security/SECURITY.md)
+- **Contributing**: [CONTRIBUTING](guides/CONTRIBUTING.md)
