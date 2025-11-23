@@ -79,7 +79,7 @@ The required package is already added to `requirements.txt`:
 pip install -r requirements.txt
 ```
 
-This installs `Flask-ReCaptcha==0.6.0` which provides the reCAPTCHA integration.
+This installs `Flask-ReCaptcha==0.4.2` which provides the reCAPTCHA integration.
 
 ### 4. Restart Your Application
 

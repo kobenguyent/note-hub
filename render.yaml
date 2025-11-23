@@ -15,8 +15,10 @@ services:
       - key: FLASK_SECRET
         generateValue: true
       - key: NOTES_DB_PATH
-        value: /opt/render/project/data/notes.db
+        value: /var/data/notes.db
+    # CRITICAL: Persistent disk for SQLite database
+    # Without this, all data will be lost on each deployment!
     disk:
-      name: data
-      mountPath: /opt/render/project/data
+      name: notehub-data
+      mountPath: /var/data
       sizeGB: 1

@@ -18,6 +18,22 @@ class AppConfig:
     max_content_length: int = 16 * 1024 * 1024
     recaptcha_site_key: str = field(default_factory=lambda: os.getenv("RECAPTCHA_SITE_KEY", ""))
     recaptcha_secret_key: str = field(default_factory=lambda: os.getenv("RECAPTCHA_SECRET_KEY", ""))
+    
+    def __post_init__(self):
+        """Validate configuration after initialization."""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Log database configuration for debugging
+        logger.info(f"📊 Database path configured: {self.db_path}")
+        
+        # Warn if using default database path in production
+        if self.db_path == "notes.db" and os.getenv("PORT"):
+            logger.warning(
+                "⚠️  Using default database path 'notes.db' in production! "
+                "This may not be on persistent storage. "
+                "Set NOTES_DB_PATH environment variable to a persistent location."
+            )
 
     @property
     def flask_settings(self) -> dict[str, object]:
