@@ -14,11 +14,15 @@ services:
         generateValue: true
       - key: FLASK_SECRET
         generateValue: true
-      - key: NOTES_DB_PATH
-        value: /var/data/notes.db
-    # CRITICAL: Persistent disk for SQLite database
-    # Without this, all data will be lost on each deployment!
-    disk:
-      name: notehub-data
-      mountPath: /var/data
-      sizeGB: 1
+      # MySQL Database Configuration
+      # Set these values to match your MySQL database
+      - key: MYSQL_HOST
+        sync: false # Set manually in Render dashboard
+      - key: MYSQL_PORT
+        value: "3306"
+      - key: MYSQL_USER
+        sync: false # Set manually in Render dashboard
+      - key: MYSQL_PASSWORD
+        sync: false # Set manually in Render dashboard
+      - key: MYSQL_DATABASE
+        sync: false # Set manually in Render dashboard

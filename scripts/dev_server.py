@@ -24,7 +24,7 @@ app, _config = build_app()
 
 if __name__ == "__main__":
     print("\n🗒️  Simple Notes App Starting...")
-    print(f"📂 Database: {_config.db_path}")
+    print(f"📊 Database: MySQL - {_config.db_user}@{_config.db_host}:{_config.db_port}/{_config.db_name}")
     print(f"👤 Admin: {_config.admin_username}")
     print("🌐 URL: http://127.0.0.1:5000")
     print("🛑 Press Ctrl+C to stop\n")

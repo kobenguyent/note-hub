@@ -78,73 +78,45 @@ def register_admin_routes(app):
     
     @app.route("/admin/health")
     def admin_health():
-        """Health check endpoint to verify database persistence and system status."""
+        """Health check endpoint to verify database connectivity and system status."""
         try:
             from ..config import AppConfig
             config = AppConfig()
             
-            # Get database path
-            db_path = config.db_path
+            # Get database connection info
+            db_uri = config.database_uri
             
-            # Check if database file exists
-            db_exists = os.path.exists(db_path)
-            db_size = os.path.getsize(db_path) if db_exists else 0
-            db_dir = os.path.dirname(db_path) or "."
-            
-            # Check directory permissions
-            dir_writable = os.access(db_dir, os.W_OK) if os.path.exists(db_dir) else False
-            
-            # Get disk space info (if on Unix-like system)
-            disk_info = {}
-            try:
-                stat = os.statvfs(db_dir)
-                disk_info = {
-                    "total_gb": round(stat.f_blocks * stat.f_frsize / (1024**3), 2),
-                    "free_gb": round(stat.f_bfree * stat.f_frsize / (1024**3), 2),
-                    "available_gb": round(stat.f_bavail * stat.f_frsize / (1024**3), 2),
-                }
-            except:
-                disk_info = {"error": "Unable to get disk stats"}
+            # Mask password in URI for security
+            masked_uri = db_uri
+            if '@' in db_uri and ':' in db_uri:
+                parts = db_uri.split('@')
+                before_at = parts[0]
+                after_at = '@'.join(parts[1:])
+                if ':' in before_at:
+                    user_part = before_at.split('://')[1].split(':')[0]
+                    protocol = before_at.split('://')[0]
+                    masked_uri = f"{protocol}://{user_part}:****@{after_at}"
             
             # Check database connectivity
             with db() as s:
                 user_count = s.execute(select(func.count(User.id))).scalar()
             
-            # Determine if path is on persistent storage (common mount points)
-            persistent_paths = ["/var/data", "/opt/render/project/data", "/data", "/mnt"]
-            is_persistent = any(db_path.startswith(path) for path in persistent_paths)
-            
             health_data = {
                 "status": "healthy",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "database": {
-                    "path": db_path,
-                    "exists": db_exists,
-                    "size_bytes": db_size,
-                    "size_mb": round(db_size / (1024 * 1024), 2),
-                    "directory": db_dir,
-                    "writable": dir_writable,
-                    "likely_persistent": is_persistent,
+                    "type": "MySQL",
+                    "host": config.db_host,
+                    "port": config.db_port,
+                    "database": config.db_name,
+                    "connection": "OK",
+                    "uri_masked": masked_uri
                 },
-                "disk": disk_info,
                 "stats": {
                     "total_users": user_count,
                 },
                 "warnings": [],
             }
-            
-            # Add warnings
-            if not is_persistent:
-                health_data["warnings"].append(
-                    f"Database path '{db_path}' may not be on persistent storage. "
-                    "Data could be lost on redeployment!"
-                )
-            
-            if not db_exists:
-                health_data["warnings"].append("Database file does not exist yet.")
-            
-            if not dir_writable:
-                health_data["warnings"].append("Database directory is not writable!")
             
             return jsonify(health_data)
             

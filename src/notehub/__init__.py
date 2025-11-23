@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).resolve().parents[2] / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFError
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -52,4 +61,6 @@ def create_app(config: AppConfig | None = None) -> Flask:
     return app
 
 
-app = create_app()
+def get_app() -> Flask:
+    """Get or create the application instance."""
+    return create_app()

@@ -11,7 +11,13 @@ from dataclasses import dataclass, field
 class AppConfig:
     """Simple configuration container with sane defaults."""
 
-    db_path: str = field(default_factory=lambda: os.getenv("NOTES_DB_PATH", "notes.db"))
+    # MySQL configuration
+    db_host: str = field(default_factory=lambda: os.getenv("MYSQL_HOST", "localhost"))
+    db_port: int = field(default_factory=lambda: int(os.getenv("MYSQL_PORT", "3306")))
+    db_user: str = field(default_factory=lambda: os.getenv("MYSQL_USER", "notehub"))
+    db_password: str = field(default_factory=lambda: os.getenv("MYSQL_PASSWORD", ""))
+    db_name: str = field(default_factory=lambda: os.getenv("MYSQL_DATABASE", "notehub"))
+    
     admin_username: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_USERNAME", "admin"))
     admin_password: str = field(default_factory=lambda: os.getenv("NOTES_ADMIN_PASSWORD", "ChangeMeNow!42"))
     secret_key: str = field(default_factory=lambda: os.getenv("FLASK_SECRET") or secrets.token_hex(32))
@@ -25,14 +31,13 @@ class AppConfig:
         logger = logging.getLogger(__name__)
         
         # Log database configuration for debugging
-        logger.info(f"📊 Database path configured: {self.db_path}")
+        logger.info(f"📊 MySQL Database configured: {self.db_user}@{self.db_host}:{self.db_port}/{self.db_name}")
         
-        # Warn if using default database path in production
-        if self.db_path == "notes.db" and os.getenv("PORT"):
+        # Warn if using default credentials in production
+        if self.db_password == "" and os.getenv("PORT"):
             logger.warning(
-                "⚠️  Using default database path 'notes.db' in production! "
-                "This may not be on persistent storage. "
-                "Set NOTES_DB_PATH environment variable to a persistent location."
+                "⚠️  MySQL password is empty in production! "
+                "Set MYSQL_PASSWORD environment variable for security."
             )
 
     @property
@@ -65,4 +70,14 @@ class AppConfig:
 
     @property
     def database_uri(self) -> str:
-        return f"sqlite:///{self.db_path}"
+        """Build MySQL connection URI with proper encoding."""
+        from urllib.parse import quote_plus
+        
+        # Encode password to handle special characters
+        encoded_password = quote_plus(self.db_password) if self.db_password else ""
+        
+        # Build MySQL URI with pymysql driver
+        if encoded_password:
+            return f"mysql+pymysql://{self.db_user}:{encoded_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
+        else:
+            return f"mysql+pymysql://{self.db_user}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
