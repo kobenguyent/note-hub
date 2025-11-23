@@ -61,4 +61,6 @@ def create_app(config: AppConfig | None = None) -> Flask:
     return app
 
 
-app = create_app()
+def get_app() -> Flask:
+    """Get or create the application instance."""
+    return create_app()

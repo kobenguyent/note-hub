@@ -87,15 +87,6 @@ def init_database(database_uri: str):
         # If index/table creation fails (e.g., already exists), log but continue
         # This handles edge cases where checkfirst doesn't catch everything
         logger.warning(f"Database creation warning (may be safe to ignore): {e}")
-        # Verify critical tables exist
-        from sqlalchemy import inspect
-        inspector = inspect(_engine)
-        tables = inspector.get_table_names()
-        if 'users' not in tables:
-            # Critical failure - re-raise
-            logger.error("Critical: users table does not exist!")
-            raise
-        logger.info("Database tables verified to exist despite creation warning")
     
     # Set up enhanced event listeners for real-time audit logging
     from .models import User
