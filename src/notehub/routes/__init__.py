@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from flask import render_template, session
 
-from ..routes_modules import (register_admin_routes, register_auth_routes,
-                               register_note_routes, register_profile_routes,
-                               register_task_routes)
+from ..routes_modules import (register_admin_routes, register_api_routes,
+                               register_auth_routes, register_note_routes,
+                               register_profile_routes, register_task_routes)
 from ..services.utils import current_user, db
 
 
@@ -19,6 +19,7 @@ def register_routes(app):
     register_task_routes(app)
     register_profile_routes(app)
     register_admin_routes(app)
+    register_api_routes(app)  # JWT-based API routes
 
     # Context processor and error handlers
     @app.context_processor
