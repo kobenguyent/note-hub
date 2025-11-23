@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List, Optional, Tuple
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session, aliased, joinedload, selectinload
+from sqlalchemy.orm import Session, aliased, selectinload
 
 from ..models import Note, ShareNote, Tag, User, note_tag
 from .utils import parse_tags
@@ -105,7 +105,7 @@ class NoteService:
             )
         
         # Order and execute
-        stmt = stmt.options(joinedload(Note.tags)).order_by(
+        stmt = stmt.order_by(
             Note.pinned.desc(),
             Note.updated_at.desc()
         )
@@ -135,8 +135,8 @@ class NoteService:
             Tuple of (note, has_access, can_edit)
         """
         note = session.execute(
-            select(Note).options(joinedload(Note.tags)).where(Note.id == note_id)
-        ).unique().scalar_one_or_none()
+            select(Note).options(selectinload(Note.tags)).where(Note.id == note_id)
+        ).scalar_one_or_none()
         
         if not note:
             return None, False, False
