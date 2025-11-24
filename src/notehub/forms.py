@@ -42,20 +42,28 @@ class LoginForm(FlaskForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        captcha_type = current_app.config.get('CAPTCHA_TYPE', 'none')
-        
-        # Add appropriate CAPTCHA field based on configuration
-        if captcha_type == 'recaptcha' and current_app.config.get('RECAPTCHA_ENABLED', False):
-            self.recaptcha = RecaptchaField()
-        elif captcha_type == 'simple':
-            # Generate a new CAPTCHA question
-            question, token = get_captcha_question()
-            session['captcha_question'] = question
-            self.captcha_answer = StringField(
-                "Security Question", 
-                validators=[DataRequired(), validate_simple_captcha]
-            )
-            self.captcha_token = HiddenField(default=token)
+        try:
+            captcha_type = current_app.config.get('CAPTCHA_TYPE', 'none')
+            
+            # Add appropriate CAPTCHA field based on configuration
+            if captcha_type == 'recaptcha' and current_app.config.get('RECAPTCHA_ENABLED', False):
+                self.recaptcha = RecaptchaField()
+            elif captcha_type == 'simple':
+                # Generate a new CAPTCHA question
+                question, token = get_captcha_question()
+                try:
+                    session['captcha_question'] = question
+                except RuntimeError:
+                    # Working outside request context (e.g., in tests)
+                    pass
+                self.captcha_answer = StringField(
+                    "Security Question", 
+                    validators=[DataRequired(), validate_simple_captcha]
+                )
+                self.captcha_token = HiddenField(default=token)
+        except RuntimeError:
+            # Working outside request context - skip CAPTCHA setup
+            pass
 
 
 class Verify2FAForm(FlaskForm):
@@ -81,20 +89,28 @@ class RegisterForm(FlaskForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        captcha_type = current_app.config.get('CAPTCHA_TYPE', 'none')
-        
-        # Add appropriate CAPTCHA field based on configuration
-        if captcha_type == 'recaptcha' and current_app.config.get('RECAPTCHA_ENABLED', False):
-            self.recaptcha = RecaptchaField()
-        elif captcha_type == 'simple':
-            # Generate a new CAPTCHA question
-            question, token = get_captcha_question()
-            session['captcha_question'] = question
-            self.captcha_answer = StringField(
-                "Security Question", 
-                validators=[DataRequired(), validate_simple_captcha]
-            )
-            self.captcha_token = HiddenField(default=token)
+        try:
+            captcha_type = current_app.config.get('CAPTCHA_TYPE', 'none')
+            
+            # Add appropriate CAPTCHA field based on configuration
+            if captcha_type == 'recaptcha' and current_app.config.get('RECAPTCHA_ENABLED', False):
+                self.recaptcha = RecaptchaField()
+            elif captcha_type == 'simple':
+                # Generate a new CAPTCHA question
+                question, token = get_captcha_question()
+                try:
+                    session['captcha_question'] = question
+                except RuntimeError:
+                    # Working outside request context (e.g., in tests)
+                    pass
+                self.captcha_answer = StringField(
+                    "Security Question", 
+                    validators=[DataRequired(), validate_simple_captcha]
+                )
+                self.captcha_token = HiddenField(default=token)
+        except RuntimeError:
+            # Working outside request context - skip CAPTCHA setup
+            pass
 
 
 class NoteForm(FlaskForm):
@@ -116,20 +132,28 @@ class ForgotPasswordForm(FlaskForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        captcha_type = current_app.config.get('CAPTCHA_TYPE', 'none')
-        
-        # Add appropriate CAPTCHA field based on configuration
-        if captcha_type == 'recaptcha' and current_app.config.get('RECAPTCHA_ENABLED', False):
-            self.recaptcha = RecaptchaField()
-        elif captcha_type == 'simple':
-            # Generate a new CAPTCHA question
-            question, token = get_captcha_question()
-            session['captcha_question'] = question
-            self.captcha_answer = StringField(
-                "Security Question", 
-                validators=[DataRequired(), validate_simple_captcha]
-            )
-            self.captcha_token = HiddenField(default=token)
+        try:
+            captcha_type = current_app.config.get('CAPTCHA_TYPE', 'none')
+            
+            # Add appropriate CAPTCHA field based on configuration
+            if captcha_type == 'recaptcha' and current_app.config.get('RECAPTCHA_ENABLED', False):
+                self.recaptcha = RecaptchaField()
+            elif captcha_type == 'simple':
+                # Generate a new CAPTCHA question
+                question, token = get_captcha_question()
+                try:
+                    session['captcha_question'] = question
+                except RuntimeError:
+                    # Working outside request context (e.g., in tests)
+                    pass
+                self.captcha_answer = StringField(
+                    "Security Question", 
+                    validators=[DataRequired(), validate_simple_captcha]
+                )
+                self.captcha_token = HiddenField(default=token)
+        except RuntimeError:
+            # Working outside request context - skip CAPTCHA setup
+            pass
 
 
 class ResetPasswordForm(FlaskForm):
