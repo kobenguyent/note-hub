@@ -130,3 +130,20 @@ class ProfileEditForm(FlaskForm):
 class Setup2FAForm(FlaskForm):
     totp_code = StringField("Verification Code", validators=[DataRequired(), Length(min=6, max=6)])
     secret = StringField("Secret", validators=[DataRequired()])
+
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField("Current Password", validators=[DataRequired()])
+    new_password = PasswordField(
+        "New Password",
+        validators=[
+            DataRequired(),
+            Length(min=PASSWORD_POLICY_MIN_LENGTH),
+            validate_password_complexity,
+        ],
+        description=PASSWORD_POLICY_MESSAGE,
+    )
+    new_password_confirm = PasswordField(
+        "Confirm New Password",
+        validators=[DataRequired(), EqualTo("new_password", message="Passwords must match")],
+    )
