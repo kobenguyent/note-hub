@@ -235,12 +235,12 @@
         if (previewToggle && previewPanel) {
             // Start with preview hidden on mobile
             if (window.innerWidth < 1024) {
-                previewPanel.classList.add('hidden');
+                previewPanel.classList.add('preview-hidden');
             }
             
             // Update button text based on initial state
             function updateToggleButton() {
-                const isHidden = previewPanel.classList.contains('hidden');
+                const isHidden = previewPanel.classList.contains('preview-hidden');
                 previewToggle.innerHTML = `
                     <i class="fas fa-${isHidden ? 'eye' : 'eye-slash'} mr-2"></i>
                     ${isHidden ? 'Show' : 'Hide'} Preview
@@ -249,9 +249,14 @@
             
             updateToggleButton();
             
-            previewToggle.addEventListener('click', function() {
-                previewPanel.classList.toggle('hidden');
+            previewToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                previewPanel.classList.toggle('preview-hidden');
                 updateToggleButton();
+                // Update preview when showing
+                if (!previewPanel.classList.contains('preview-hidden')) {
+                    updatePreview();
+                }
             });
         }
     });
@@ -259,14 +264,35 @@
 
 <style>
     /* Preview panel toggle */
-    #previewPanel.hidden {
+    #previewPanel.preview-hidden {
         display: none;
     }
     
-    /* On mobile, start with preview hidden by default */
+    /* Improve mobile layout */
     @media (max-width: 1024px) {
-        .grid-cols-1 {
+        /* Ensure textarea is responsive on mobile */
+        #body {
+            font-size: 16px; /* Prevents iOS zoom on focus */
+            min-height: 250px;
+        }
+        
+        /* Make editor panels full width on mobile */
+        .grid.lg\\:grid-cols-2 {
             grid-template-columns: 1fr;
+        }
+        
+        /* Reduce padding on mobile for more space */
+        .max-w-6xl {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+    
+    /* Better touch targets for mobile */
+    @media (max-width: 640px) {
+        button, .btn-primary {
+            min-height: 44px;
+            padding: 0.75rem 1rem;
         }
     }
 </style>
