@@ -396,9 +396,18 @@
             </div>
 
             <!-- Page Content -->
-            <div class="flex-1 overflow-auto" style="background-color: var(--bg-primary);">
+            <div class="flex-1 overflow-auto" id="main-content" style="background-color: var(--bg-primary);">
                 {% block content %}{% endblock %}
             </div>
+            
+            <!-- Back to Top Button -->
+            <button id="backToTop" 
+                    class="fixed bottom-8 right-8 p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 invisible hover:scale-110 z-40"
+                    style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));"
+                    title="Back to top"
+                    aria-label="Scroll to top">
+                <i class="fas fa-arrow-up text-white"></i>
+            </button>
         </main>
     </div>
 
@@ -454,6 +463,31 @@
         } else {
             document.documentElement.classList.add('light');
             document.documentElement.classList.remove('dark');
+        }
+        
+        // Back to Top button functionality
+        const backToTopButton = document.getElementById('backToTop');
+        const mainContent = document.getElementById('main-content');
+        
+        if (backToTopButton && mainContent) {
+            // Show/hide button based on scroll position
+            mainContent.addEventListener('scroll', function() {
+                if (mainContent.scrollTop > 300) {
+                    backToTopButton.classList.remove('opacity-0', 'invisible');
+                    backToTopButton.classList.add('opacity-100', 'visible');
+                } else {
+                    backToTopButton.classList.add('opacity-0', 'invisible');
+                    backToTopButton.classList.remove('opacity-100', 'visible');
+                }
+            });
+            
+            // Smooth scroll to top when clicked
+            backToTopButton.addEventListener('click', function() {
+                mainContent.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
         }
     </script>
 </body>
