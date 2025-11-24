@@ -53,6 +53,15 @@ def create_app(config: AppConfig | None = None) -> Flask:
             error_code=400,
         ), 400
     
+    # Add 503 error handler for service unavailable
+    @app.errorhandler(503)
+    def handle_503_error(error):
+        return render_template(
+            "error.html",
+            code=503,
+            error="Service Temporarily Unavailable",
+        ), 503
+    
     init_database(config.database_uri)
     migrate_database()
     ensure_admin(config.admin_username, config.admin_password)
