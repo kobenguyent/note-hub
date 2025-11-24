@@ -206,7 +206,7 @@ The simple CAPTCHA has been significantly strengthened with the following improv
 ### 4. Increased Difficulty Range
 
 - Larger number ranges make brute-forcing significantly harder
-- Answers can range from 4 to 144, providing thousands of possibilities
+- Answers can range from 0 to 144, providing thousands of possibilities
 - Multiple operation types increase complexity
 
 ### 5. Token Format

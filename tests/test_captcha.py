@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 import pytest
 from flask import session
 
@@ -265,8 +267,6 @@ class TestCaptchaSecurity:
     
     def test_token_expiration(self):
         """Test that tokens expire after the configured time."""
-        import time
-        
         # Generate a challenge
         question, token = SimpleMathCaptcha.generate_challenge()
         correct_answer = token.split('|')[0]

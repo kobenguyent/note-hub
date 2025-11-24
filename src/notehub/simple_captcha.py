@@ -24,8 +24,16 @@ class SimpleMathCaptcha:
     # Token expiration time in seconds (5 minutes)
     TOKEN_EXPIRATION = 300
     
-    # Secret key for HMAC (should be consistent per session but unique per instance)
-    _SECRET_KEY = secrets.token_bytes(32)
+    # Secret key for HMAC (generated once per application instance)
+    # This is initialized once when the module is first imported
+    _SECRET_KEY = None
+    
+    @classmethod
+    def _get_secret_key(cls) -> bytes:
+        """Get or initialize the secret key for HMAC."""
+        if cls._SECRET_KEY is None:
+            cls._SECRET_KEY = secrets.token_bytes(32)
+        return cls._SECRET_KEY
     
     @staticmethod
     def generate_challenge() -> Tuple[str, str]:
@@ -63,7 +71,7 @@ class SimpleMathCaptcha:
         timestamp = str(int(time.time()))
         message = f"{answer}|{timestamp}"
         signature = hmac.new(
-            SimpleMathCaptcha._SECRET_KEY,
+            SimpleMathCaptcha._get_secret_key(),
             message.encode(),
             hashlib.sha256
         ).hexdigest()
@@ -105,7 +113,7 @@ class SimpleMathCaptcha:
             # Verify HMAC signature to prevent tampering
             message = f"{correct_answer}|{timestamp}"
             expected_signature = hmac.new(
-                SimpleMathCaptcha._SECRET_KEY,
+                SimpleMathCaptcha._get_secret_key(),
                 message.encode(),
                 hashlib.sha256
             ).hexdigest()
