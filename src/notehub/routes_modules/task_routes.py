@@ -23,11 +23,24 @@ def register_task_routes(app):
     @app.route("/tasks")
     @login_required
     def tasks():
+        """Display tasks page with error handling."""
         user = current_user()
+        if not user:
+            flash("Please log in to view tasks.", "error")
+            return redirect(url_for("login"))
+        
         filter_type = request.args.get('filter', 'all')
-        with db() as s:
-            tasks_list = TaskService.get_tasks_for_user(s, user, filter_type)
-            task_counts = TaskService.get_task_counts(s, user)
+        
+        try:
+            with db() as s:
+                tasks_list = TaskService.get_tasks_for_user(s, user, filter_type)
+                task_counts = TaskService.get_task_counts(s, user)
+        except Exception as e:
+            logger.error(f"Error loading tasks for user {user.id}: {e}")
+            flash("Error loading tasks. Please try again.", "error")
+            tasks_list = []
+            task_counts = {'total': 0, 'completed': 0, 'active': 0}
+        
         return render_template(
             "tasks.html",
             tasks=tasks_list,
