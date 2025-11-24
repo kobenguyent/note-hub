@@ -15,12 +15,66 @@ def db():
     return get_session()
 
 
+def invalidate_user_cache():
+    """Invalidate cached user data in session.
+    
+    Call this after updating user profile, theme, or other user attributes
+    to ensure the cache is refreshed on next request.
+    """
+    session.pop("_cached_user_data", None)
+
+
 def current_user() -> Optional[User]:
+    """Get current user from session.
+    
+    Uses session caching to avoid repeated database queries.
+    Returns a lightweight User object with essential attributes cached.
+    """
     user_id = session.get("user_id")
     if not user_id:
         return None
+    
+    # Check if we have cached user data in the session
+    cached_user_data = session.get("_cached_user_data")
+    
+    # If cache exists and user_id matches, return cached user
+    if cached_user_data and cached_user_data.get("id") == user_id:
+        # Create a minimal User object from cached data
+        # This avoids DB queries for every request
+        user = User()
+        user.id = cached_user_data["id"]
+        user.username = cached_user_data["username"]
+        user.theme = cached_user_data.get("theme", "light")
+        user.email = cached_user_data.get("email")
+        user.bio = cached_user_data.get("bio")
+        user.totp_secret = cached_user_data.get("totp_secret")
+        # Restore datetime fields from cached ISO strings
+        if cached_user_data.get("created_at"):
+            from datetime import datetime
+            user.created_at = datetime.fromisoformat(cached_user_data["created_at"])
+        if cached_user_data.get("last_login"):
+            from datetime import datetime
+            user.last_login = datetime.fromisoformat(cached_user_data["last_login"])
+        return user
+    
+    # If no cache or cache is stale, fetch from database
     with db() as s:
-        return s.get(User, user_id)
+        user = s.get(User, user_id)
+        if user:
+            # Cache essential user data in session to avoid future DB queries
+            session["_cached_user_data"] = {
+                "id": user.id,
+                "username": user.username,
+                "theme": user.theme,
+                "email": user.email,
+                "bio": user.bio,
+                "totp_secret": user.totp_secret,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "last_login": user.last_login.isoformat() if user.last_login else None,
+            }
+            # Also cache theme separately for backward compatibility
+            session["theme"] = user.theme
+        return user
 
 
 def login_required(view: Callable):
