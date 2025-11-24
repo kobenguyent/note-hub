@@ -16,6 +16,14 @@ The Note Hub application takes security very seriously. This document outlines t
   - Uses PBKDF2 with SHA256 by default
   - Passwords are salted and never stored in plaintext
 
+- **Password Policy**
+
+  - Minimum 12 characters required
+  - Must contain: lowercase, uppercase, numbers, and special characters
+  - No whitespace allowed
+  - Real-time validation feedback during registration and password reset
+  - Password complexity checked on both client and server side
+
 - **Session Management**
 
   - Secure server-side session handling
@@ -42,12 +50,28 @@ The Note Hub application takes security very seriously. This document outlines t
   - Base64 encoded for safe transmission
   - Secret keys stored encrypted in database
 
-- **2FA Bypass for Account Recovery**
-  - Password reset flow allows bypassing 2FA
-  - Identity verified through security questions or email
+- **2FA for Password Reset**
+  - Users with 2FA enabled MUST verify their identity with 2FA code before resetting password
+  - Password reset flow requires 2FA verification if enabled
+  - CAPTCHA protection on forgot password form (when enabled)
   - Re-enable 2FA after recovering access
 
-### 3. **Input Validation & Sanitization**
+### 3. **CAPTCHA Protection (reCAPTCHA)**
+
+- **Bot Prevention**
+
+  - Google reCAPTCHA v2 integration
+  - Enabled on login, registration, and password reset forms
+  - Prevents automated attacks, credential stuffing, and bot registrations
+  - Configure via `RECAPTCHA_ENABLED`, `RECAPTCHA_SITE_KEY`, and `RECAPTCHA_SECRET_KEY` environment variables
+
+- **Rate Limiting**
+  - Login: 10 attempts per minute
+  - Registration: 5 attempts per hour
+  - Password Reset: 5 attempts per hour
+  - 2FA verification: 5 attempts per minute
+
+### 4. **Input Validation & Sanitization**
 
 - **Server-Side Validation**
 
@@ -66,7 +90,7 @@ The Note Hub application takes security very seriously. This document outlines t
   - No raw SQL with string concatenation
   - Prepared statements for all database operations
 
-### 4. **Database Security**
+### 5. **Database Security**
 
 - **SQLite Encryption (Optional)**
 
@@ -84,7 +108,7 @@ The Note Hub application takes security very seriously. This document outlines t
   - TOTP secrets stored in database
   - Database file should be backed up securely
 
-### 5. **HTTPS/TLS**
+### 6. **HTTPS/TLS**
 
 - **Production Deployment**
 
@@ -97,7 +121,7 @@ The Note Hub application takes security very seriously. This document outlines t
   - Auto-renewal configured
   - HSTS headers recommended
 
-### 6. **Content Security Policy (CSP)**
+### 7. **Content Security Policy (CSP)**
 
 - **Recommended Headers**
   - Content-Security-Policy for XSS protection
