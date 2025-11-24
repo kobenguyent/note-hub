@@ -23,9 +23,9 @@ class SimpleMathCaptcha:
         """Generate a simple math challenge.
         
         Returns:
-            Tuple of (question, answer_hash) where:
+            Tuple of (question, answer_token) where:
             - question: Human-readable math problem (e.g., "What is 7 + 3?")
-            - answer_hash: Hash token combining answer with random salt for validation
+            - answer_token: Token combining answer with random salt for validation
         """
         # Generate two random numbers between 1 and 20
         num1 = random.randint(1, 20)
@@ -57,7 +57,8 @@ class SimpleMathCaptcha:
         
         Args:
             user_answer: User's submitted answer as string
-            answer_token: Token from generate_challenge containing correct answer
+            answer_token: Token from generate_challenge containing correct answer and salt
+                         Format: "answer|salt" where answer is the correct numeric answer
             
         Returns:
             True if answer is correct, False otherwise
