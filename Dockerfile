@@ -1,7 +1,8 @@
 # =============================================================================
-# NoteHub - Multi-stage Dockerfile for Fly.io Deployment
+# NoteHub - Multi-stage Dockerfile for Fly.io Deployment (Primary Platform)
 # Frontend: Vite + React + TypeScript
 # Backend: Python Flask
+# Optimized for Fly.io free tier (256MB RAM, shared CPU)
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -14,13 +15,14 @@ WORKDIR /frontend
 # Copy package files first for better caching
 COPY frontend/package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with reduced memory usage
+RUN npm ci --prefer-offline --no-audit
 
 # Copy frontend source code
 COPY frontend/ ./
 
-# Build the frontend for production
+# Build the frontend for production with optimizations
+ENV NODE_ENV=production
 RUN npm run build
 
 # -----------------------------------------------------------------------------
@@ -28,26 +30,33 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 FROM python:3.11-slim AS production
 
-# Set environment variables
+# Set environment variables optimized for low memory
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONOPTIMIZE=1 \
     PORT=8080 \
-    APP_ENV=production
+    APP_ENV=production \
+    # Gunicorn settings for Fly.io free tier
+    GUNICORN_WORKERS=1 \
+    GUNICORN_THREADS=2 \
+    GUNICORN_TIMEOUT=180
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    libpq-dev \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Copy Python requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    # Clean up pip cache
+    rm -rf /root/.cache/pip
 
 # Copy backend source code
 COPY src/ ./src/
@@ -64,9 +73,27 @@ USER appuser
 # Expose the port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Health check optimized for Fly.io suspend/resume
+# - Longer interval (60s) to reduce overhead
+# - Longer start period (45s) for cold starts from suspend
+# - Increased retries for resilience
+HEALTHCHECK --interval=60s --timeout=15s --start-period=45s --retries=5 \
+    CMD curl -sf http://localhost:8080/health || exit 1
 
-# Start the application with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
+# Start gunicorn with optimized settings for Fly.io free tier
+# - 1 worker: Fits in 256MB RAM
+# - 2 threads: Handle concurrent requests efficiently
+# - 180s timeout: Allow for slow cold starts
+# - keep-alive 5: Reduce connection overhead
+# - preload: Faster worker spawning
+CMD ["gunicorn", \
+    "--bind", "0.0.0.0:8080", \
+    "--workers", "1", \
+    "--threads", "2", \
+    "--timeout", "180", \
+    "--keep-alive", "5", \
+    "--preload", \
+    "--access-logfile", "-", \
+    "--error-logfile", "-", \
+    "--log-level", "info", \
+    "wsgi:app"]

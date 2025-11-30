@@ -1,0 +1,107 @@
+# =============================================================================
+# Docker Compose for NoteHub - Hetzner VPS Deployment
+# =============================================================================
+#
+# Deploy NoteHub on Hetzner VPS (€3.29/month) with Cloudflare Tunnel (free)
+#
+# Benefits:
+# - Unlimited bandwidth via Cloudflare CDN
+# - Automatic HTTPS & DDoS protection
+# - MySQL included (no external DB needed)
+# - Full control over your server
+# - No port forwarding required
+#
+# Quick Start:
+#   1. Copy .env.example to .env and configure
+#   2. Run: docker compose up -d
+#   3. Access via your Cloudflare domain
+#
+# =============================================================================
+
+services:
+  # ==========================================================================
+  # NoteHub Application
+  # ==========================================================================
+  notehub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notehub-app
+    restart: unless-stopped
+    environment:
+      # Flask Configuration
+      - FLASK_ENV=production
+      - FLASK_SECRET=${FLASK_SECRET}
+      - PORT=8080
+
+      # Admin Credentials
+      - NOTES_ADMIN_USERNAME=${NOTES_ADMIN_USERNAME:-admin}
+      - NOTES_ADMIN_PASSWORD=${NOTES_ADMIN_PASSWORD}
+
+      # MySQL Database (uses local MySQL container)
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-notehub}
+
+      # CAPTCHA
+      - CAPTCHA_TYPE=${CAPTCHA_TYPE:-simple}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - notehub-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ==========================================================================
+  # MySQL Database
+  # ==========================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: notehub-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-notehub}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - notehub-network
+
+  # ==========================================================================
+  # Cloudflare Tunnel (exposes app to internet securely)
+  # ==========================================================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: notehub-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      notehub:
+        condition: service_healthy
+    networks:
+      - notehub-network
+
+networks:
+  notehub-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local

@@ -3,17 +3,16 @@
 A secure, feature-rich personal notes application with modern architecture.
 
 ![CI/CD Pipeline](https://github.com/thienng-it/note-hub/actions/workflows/ci-cd.yml/badge.svg?branch=main)
-![Deploy to Fly.io](https://github.com/thienng-it/note-hub/actions/workflows/fly-deploy.yml/badge.svg)
 
 ## 🏗️ Tech Stack
 
-| Layer          | Technology                     |
-| -------------- | ------------------------------ |
-| **Frontend**   | Vite + React + TypeScript      |
-| **Backend**    | Python Flask 3.x               |
-| **Database**   | MySQL 8.0+ with SQLAlchemy ORM |
-| **Deployment** | Render.com / Fly.io            |
-| **CI/CD**      | GitHub Actions                 |
+| Layer          | Technology                      |
+| -------------- | ------------------------------- |
+| **Frontend**   | Vite + React + TypeScript       |
+| **Backend**    | Python Flask 3.x                |
+| **Database**   | MySQL 8.0+ with SQLAlchemy ORM  |
+| **Deployment** | Hetzner VPS + Cloudflare Tunnel |
+| **CI/CD**      | GitHub Actions                  |
 
 ## ✨ Features
 
@@ -117,9 +116,8 @@ note-hub/
 ├── tests/                     # Test suite
 ├── docs/                      # Documentation
 │   └── guides/
-│       └── FLY_IO_DEPLOYMENT.md  # Fly.io deployment guide
-├── fly.toml                   # Fly.io configuration
-├── render.yaml                # Render.com configuration
+│       └── HETZNER_DEPLOYMENT.md  # Hetzner VPS deployment guide
+├── docker-compose.yml         # Docker Compose for production
 ├── Dockerfile                 # Multi-stage Docker build
 ├── requirements.txt           # Python dependencies
 └── wsgi.py                    # Application entry point
@@ -127,30 +125,30 @@ note-hub/
 
 ## 🌐 Deployment
 
-### Option 1: Render.com (Recommended - Free, No Credit Card)
+### Hetzner VPS + Cloudflare Tunnel (Recommended)
 
-1. Fork this repository
-2. Go to [Render Dashboard](https://dashboard.render.com)
-3. Click "New" → "Blueprint" → Connect your repo
-4. Set MySQL environment variables in the dashboard
-5. Deploy!
+The best deployment option - **~€3.50/month with unlimited bandwidth!**
 
-See [Render Deployment Guide](docs/guides/RENDER_DEPLOYMENT.md) for details.
-
-### Option 2: Fly.io (Requires Credit Card)
+| Component             | Cost     | Benefits                                  |
+| --------------------- | -------- | ----------------------------------------- |
+| **Hetzner VPS**       | €3.29/mo | 2 vCPU, 2GB RAM, 40GB SSD                 |
+| **Cloudflare Tunnel** | Free     | Unlimited bandwidth, DDoS protection, CDN |
+| **MySQL**             | Included | Runs on VPS                               |
 
 ```bash
-# Install CLI
-brew install flyctl  # macOS
+# On your Hetzner VPS
+git clone https://github.com/thienng-it/note-hub.git
+cd note-hub
+
+# Configure environment
+cp .env.example .env
+nano .env  # Edit with your values
 
 # Deploy
-fly auth login
-fly launch --no-deploy
-fly secrets set MYSQL_HOST="..." MYSQL_PASSWORD="..."
-fly deploy
+docker compose up -d
 ```
 
-See [Fly.io Deployment Guide](docs/guides/FLY_IO_DEPLOYMENT.md) for details.
+See [Hetzner Deployment Guide](docs/guides/HETZNER_DEPLOYMENT.md) for complete setup.
 
 ## 🧪 Testing
 
@@ -167,14 +165,13 @@ cd frontend && npm run lint
 
 ## 📚 Documentation
 
-| Document                                              | Description             |
-| ----------------------------------------------------- | ----------------------- |
-| [Render Deployment](docs/guides/RENDER_DEPLOYMENT.md) | Deploy to Render (Free) |
-| [Fly.io Deployment](docs/guides/FLY_IO_DEPLOYMENT.md) | Deploy to Fly.io        |
-| [Architecture](docs/architecture/ARCHITECTURE.md)     | System design           |
-| [API Documentation](docs/api/JWT_API.md)              | REST API reference      |
-| [Security Guide](docs/security/SECURITY.md)           | Security best practices |
-| [Contributing](docs/guides/CONTRIBUTING.md)           | Development guidelines  |
+| Document                                                | Description             |
+| ------------------------------------------------------- | ----------------------- |
+| [Hetzner Deployment](docs/guides/HETZNER_DEPLOYMENT.md) | Deploy to Hetzner VPS   |
+| [Architecture](docs/architecture/ARCHITECTURE.md)       | System design           |
+| [API Documentation](docs/api/JWT_API.md)                | REST API reference      |
+| [Security Guide](docs/security/SECURITY.md)             | Security best practices |
+| [Contributing](docs/guides/CONTRIBUTING.md)             | Development guidelines  |
 
 ## 🤝 Contributing
 
