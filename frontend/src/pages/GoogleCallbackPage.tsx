@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
 
+// Constants for localStorage keys
+const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'notehub_access_token',
+  REFRESH_TOKEN: 'notehub_refresh_token',
+  USER: 'notehub_user',
+} as const;
+
 export function GoogleCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -28,10 +35,10 @@ export function GoogleCallbackPage() {
         const response = await apiClient.post('/api/auth/google/callback', { code });
         const { access_token, refresh_token, user } = response.data;
 
-        // Store tokens
-        localStorage.setItem('notehub_access_token', access_token);
-        localStorage.setItem('notehub_refresh_token', refresh_token);
-        localStorage.setItem('notehub_user', JSON.stringify(user));
+        // Store tokens using constants
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token);
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
 
         // Redirect to home
         navigate('/', { replace: true });

@@ -102,9 +102,14 @@ export function AdminDashboardPage() {
 
       // Refresh user list
       await loadUsers();
-      alert(`2FA has been disabled for user "${username}"`);
+      
+      // Show success message (inline instead of alert)
+      setError('');
+      // You could set a success state here for a toast notification
+      console.log(`2FA disabled successfully for user "${username}"`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to disable 2FA');
+      // Set error state instead of alert
+      setError(err instanceof Error ? err.message : 'Failed to disable 2FA');
     }
   };
 

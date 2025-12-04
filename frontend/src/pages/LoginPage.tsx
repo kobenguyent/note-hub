@@ -62,7 +62,8 @@ export function LoginPage() {
       // Redirect to Google OAuth
       window.location.href = auth_url;
     } catch (err) {
-      setError('Google Sign-In is not available');
+      console.error('Google Sign-In error:', err);
+      setError('Google Sign-In is temporarily unavailable. Please try again or sign in with username and password.');
     }
   };
 
