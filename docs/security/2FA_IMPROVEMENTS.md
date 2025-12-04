@@ -485,6 +485,7 @@ git revert <commit_hash>
 - [ ] Email notification on 2FA changes
 - [ ] Frontend UI updates
 - [ ] Admin panel 2FA management page
+- [ ] Implement proper logging framework (winston, pino)
 
 ### Medium Term
 - [ ] Multi-admin approval for sensitive actions

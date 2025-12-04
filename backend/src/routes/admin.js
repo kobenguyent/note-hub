@@ -99,6 +99,7 @@ router.post('/users/:userId/disable-2fa', jwtRequired, adminRequired, async (req
     );
 
     // Log admin action for audit trail
+    // TODO: Consider using a proper logging framework (winston, pino) in production
     console.log(`[SECURITY AUDIT] Admin ID: ${req.userId} disabled 2FA for user ID: ${userId}`);
 
     res.json({ 

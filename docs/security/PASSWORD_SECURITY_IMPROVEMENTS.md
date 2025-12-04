@@ -233,8 +233,8 @@ ORDER BY last_login DESC;
 ### Password Policy
 ✅ Minimum 12 characters (enforced)
 ✅ Character diversity required
-✅ No common passwords (should add blocklist)
-✅ No password reuse (should add history check)
+⚠️ No common passwords (recommended - not implemented)
+⚠️ No password reuse (recommended - not implemented)
 
 ### Work Factor Selection
 ✅ Balance security vs UX
@@ -285,6 +285,7 @@ console.log(`Hash time: ${duration}ms`); // Should be ~150-250ms
 - [ ] Add password strength meter in UI
 - [ ] Implement password breach checking (Have I Been Pwned API)
 - [ ] Add common password blocklist
+- [ ] Implement proper logging framework (winston, pino)
 
 ### Medium Term (3-6 months)
 - [ ] Implement password history (prevent reuse of last 5)

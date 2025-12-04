@@ -76,6 +76,8 @@ class AuthService {
     }
 
     // Opportunistic rehashing: upgrade hash if using old work factor
+    // Note: Runs asynchronously during login. Adds ~200ms but acceptable tradeoff.
+    // TODO: Consider using a proper logging framework (winston, pino) in production
     if (this.needsRehash(user.password_hash)) {
       console.log(`[SECURITY] Upgrading password hash for user ID: ${user.id}`);
       const newHash = await this.hashPassword(password);
