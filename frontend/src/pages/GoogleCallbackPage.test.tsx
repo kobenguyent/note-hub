@@ -72,11 +72,9 @@ describe('GoogleCallbackPage', () => {
 
   it('successfully handles Google OAuth callback', async () => {
     const mockResponse = {
-      data: {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
         user: { id: 1, username: 'testuser', email: 'test@example.com' },
-      },
     };
 
     (apiClient.apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
