@@ -12,6 +12,9 @@ import type {
   TasksResponse,
   TaskFilterType,
   User,
+  AIStatus,
+  AIOperationResult,
+  AIRewriteStyle,
 } from '../types';
 
 // Use relative URL in production (same origin), absolute in development
@@ -264,5 +267,36 @@ export const apiClient = {
 
   async delete<T = unknown>(endpoint: string): Promise<T> {
     return apiRequest<T>(endpoint, { method: 'DELETE' });
+  },
+};
+
+// AI API
+export const aiApi = {
+  async getStatus(): Promise<AIStatus> {
+    return apiRequest('/api/ai/status');
+  },
+
+  async proofread(text: string): Promise<string> {
+    const result = await apiRequest<AIOperationResult>('/api/ai/proofread', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return result.result;
+  },
+
+  async summarize(text: string): Promise<string> {
+    const result = await apiRequest<AIOperationResult>('/api/ai/summarize', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return result.result;
+  },
+
+  async rewrite(text: string, style: AIRewriteStyle = 'professional'): Promise<string> {
+    const result = await apiRequest<AIOperationResult>('/api/ai/rewrite', {
+      method: 'POST',
+      body: JSON.stringify({ text, style }),
+    });
+    return result.result;
   },
 };

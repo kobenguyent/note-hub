@@ -113,3 +113,25 @@ export interface TaskResponse {
 export type NoteViewType = 'all' | 'favorites' | 'archived' | 'shared';
 export type TaskFilterType = 'all' | 'active' | 'completed' | 'overdue';
 export type ThemeType = 'light' | 'dark';
+
+// AI types
+export interface AIProvider {
+  id: 'openai' | 'gemini' | 'ollama';
+  name: string;
+  configured: boolean;
+  model?: string;
+  url?: string;
+}
+
+export interface AIStatus {
+  enabled: boolean;
+  provider: string | null;
+  availableProviders: AIProvider[];
+}
+
+export interface AIOperationResult {
+  result: string;
+}
+
+export type AIOperationType = 'proofread' | 'summarize' | 'rewrite';
+export type AIRewriteStyle = 'professional' | 'casual' | 'concise';
