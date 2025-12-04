@@ -314,7 +314,7 @@ Conclusion: SQL is perfect fit
 | **Schema Flexibility** | ⚠️ Migrations | ✅ Flexible | NoSQL |
 | **Full-Text Search** | ⚠️ Limited | ✅ Better | NoSQL |
 
-**Score: SQL wins 11/13** (and the 2 NoSQL wins aren't needed for this app)
+**Score: SQL wins 9/11** (and the 2 NoSQL wins aren't needed for this app)
 
 ---
 

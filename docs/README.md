@@ -1,6 +1,6 @@
 # NoteHub
 
-A secure, feature-rich personal notes application built with Flask. Supports markdown editing, tags, tasks, two-factor authentication, and more.
+A modern, secure, and feature-rich personal notes application with a React SPA frontend and Node.js/Express API backend. Supports markdown editing, tags, tasks, two-factor authentication, and more.
 
 ---
 
