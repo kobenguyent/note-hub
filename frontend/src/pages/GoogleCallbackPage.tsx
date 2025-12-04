@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 // Constants for localStorage keys
 const STORAGE_KEYS = {
@@ -13,6 +14,7 @@ export function GoogleCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -39,6 +41,9 @@ export function GoogleCallbackPage() {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token);
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+
+        // Refresh the AuthContext to update the user state
+        await refreshUser();
 
         // Redirect to home
         navigate('/', { replace: true });
