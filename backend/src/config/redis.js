@@ -134,6 +134,8 @@ class RedisCache {
     try {
       let cursor = '0';
       let deletedCount = 0;
+      let iterations = 0;
+      const maxIterations = 1000; // Prevent infinite loops
       
       do {
         // Use SCAN instead of KEYS to avoid blocking
@@ -144,10 +146,17 @@ class RedisCache {
         );
         
         cursor = nextCursor;
+        iterations++;
         
         if (keys.length > 0) {
           await this.client.del(...keys);
           deletedCount += keys.length;
+        }
+
+        // Safety check to prevent infinite loops
+        if (iterations >= maxIterations) {
+          console.warn(`Cache delPattern reached max iterations (${maxIterations}) for pattern ${pattern}`);
+          break;
         }
       } while (cursor !== '0');
       

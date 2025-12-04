@@ -209,9 +209,13 @@ class ElasticsearchService {
       ];
 
       if (query && query.length >= SEARCH_MIN_LENGTH) {
+        // Sanitize query to prevent Elasticsearch query injection
+        // Escape special characters used in Elasticsearch query syntax
+        const sanitizedQuery = query.replace(/[+\-=&|><!(){}[\]^"~*?:\\/]/g, '\\$&');
+        
         must.push({
           multi_match: {
-            query,
+            query: sanitizedQuery,
             fields: ['title^2', 'body'], // Title is 2x more important
             type: 'best_fields',
             operator: 'or',

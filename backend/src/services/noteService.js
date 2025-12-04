@@ -42,7 +42,10 @@ class NoteService {
         }
 
         // Validate noteIds are integers to prevent SQL injection
-        const validNoteIds = noteIds.filter(id => Number.isInteger(id) && id > 0);
+        // Convert to integers and validate (ES might return strings)
+        const validNoteIds = noteIds
+          .map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+          .filter(id => Number.isInteger(id) && id > 0 && !isNaN(id));
         if (validNoteIds.length === 0) {
           await cache.set(cacheKey, [], CACHE_TTL.NOTES_SEARCH);
           return [];
