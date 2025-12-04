@@ -30,6 +30,7 @@ const notesRoutes = require('./routes/notes');
 const tasksRoutes = require('./routes/tasks');
 const profileRoutes = require('./routes/profile');
 const adminRoutes = require('./routes/admin');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -83,6 +84,7 @@ app.use('/api/notes', notesRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
