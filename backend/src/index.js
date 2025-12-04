@@ -1,6 +1,6 @@
 /**
  * NoteHub Backend - Main Entry Point
- * 
+ *
  * Node.js/Express API server for NoteHub application.
  * Supports both SQLite (default) and MySQL databases.
  * Uses Sequelize ORM for database operations.
@@ -106,7 +106,7 @@ app.get('/api/health', async (req, res) => {
 const frontendPath = path.join(__dirname, '../../frontend/dist');
 if (fs.existsSync(frontendPath)) {
   app.use(staticLimiter, express.static(frontendPath));
-  
+
   // SPA fallback - serve index.html for non-API routes
   app.get('*', staticLimiter, (req, res, next) => {
     if (req.path.startsWith('/api/')) {
@@ -133,7 +133,7 @@ async function start() {
     // Initialize Sequelize ORM
     await initializeSequelize();
     await syncDatabase();
-    
+
     // Also initialize legacy DB for backward compatibility
     await db.connect();
     await db.initSchema();
@@ -143,7 +143,7 @@ async function start() {
 
     // Initialize Elasticsearch (optional)
     await elasticsearch.connect();
-    
+
     app.listen(PORT, () => {
       console.log(`🚀 NoteHub API server running on port ${PORT}`);
       console.log(`📦 Database: ${db.isSQLite ? 'SQLite' : 'MySQL'}`);

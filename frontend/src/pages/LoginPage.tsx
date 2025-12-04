@@ -19,8 +19,8 @@ export function LoginPage() {
   useEffect(() => {
     const checkGoogleOAuth = async () => {
       try {
-        const response = await apiClient.get<{ data: { enabled: boolean } }>('/api/auth/google/status');
-        setGoogleOAuthEnabled(response.data.enabled);
+        const response = await apiClient.get<{ enabled: boolean }>('/api/auth/google/status');
+        setGoogleOAuthEnabled(response.enabled);
       } catch {
         setGoogleOAuthEnabled(false);
       }
@@ -57,8 +57,8 @@ export function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       const response = await apiClient.get<{ data: { auth_url: string } }>('/api/auth/google');
-      const { auth_url } = response.data;
-      
+      const { auth_url } = response;
+
       // Redirect to Google OAuth
       window.location.href = auth_url;
     } catch (err) {
@@ -244,9 +244,9 @@ export function LoginPage() {
             >
               Forgot your password?
             </Link>
-            
+
             <div className="border-t border-gray-200/50 my-5" />
-            
+
             <p className="text-muted-glass mb-4">New to NoteHub?</p>
 
             <Link

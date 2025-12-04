@@ -33,7 +33,7 @@ class GoogleOAuthService {
         clientSecret,
         redirectUri
       );
-      
+
       this.enabled = true;
       console.log('🔐 Google OAuth configured - SSO enabled');
     } catch (error) {
