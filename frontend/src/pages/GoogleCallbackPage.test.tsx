@@ -167,11 +167,9 @@ describe('GoogleCallbackPage', () => {
 
   it('stores tokens using correct localStorage keys', async () => {
     const mockResponse = {
-      data: {
         access_token: 'token123',
         refresh_token: 'refresh456',
         user: { id: 1, username: 'user1' },
-      },
     };
 
     (apiClient.apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
