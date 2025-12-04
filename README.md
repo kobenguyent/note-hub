@@ -9,20 +9,47 @@ A modern, secure, and feature-rich personal notes application with a React SPA f
 <details>
 <summary>Click to view screenshots</summary>
 
-### Login Page
+### Core Features
+
+#### Login Page with Google OAuth
 ![Login Page](docs/screenshots/login.png)
+*Login with username/password or one-click Google Sign-In*
 
-### Notes Dashboard
+#### Notes Dashboard
 ![Notes Dashboard](docs/screenshots/notes.png)
+*Organize notes with tags, search, favorites, and pinning*
 
-### Note Editor
+#### Note Editor
 ![Note Editor](docs/screenshots/editor.png)
+*Rich markdown editor with live preview*
 
-### Tasks Page
+#### Tasks Management
 ![Tasks Page](docs/screenshots/tasks.png)
+*Track tasks with priorities and due dates*
 
-### Dark Mode
+#### Dark Mode
 ![Dark Mode](docs/screenshots/dark-mode.png)
+*Beautiful dark theme with glassmorphism design*
+
+### New Features (December 2024)
+
+#### Google OAuth Single Sign-On
+![Google OAuth](docs/screenshots/google-oauth.png)
+*One-click sign-in with automatic account creation*
+
+#### Simplified 2FA Management
+![2FA Disable](docs/screenshots/2fa-disable.png)
+*Disable 2FA without entering OTP code (already authenticated via JWT)*
+
+#### Admin Dashboard
+![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+*User management with 2FA recovery tools*
+
+#### Admin 2FA Recovery
+![Admin 2FA Disable](docs/screenshots/admin-2fa-disable.png)
+*Admins can disable user 2FA for account recovery (lost devices, emergencies)*
+
+> **Note**: To add actual screenshots, see [Screenshot Capture Guide](docs/screenshots/README.md)
 
 </details>
 
