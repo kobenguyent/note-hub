@@ -19,7 +19,7 @@ export function LoginPage() {
   useEffect(() => {
     const checkGoogleOAuth = async () => {
       try {
-        const response = await apiClient.get('/api/auth/google/status');
+        const response = await apiClient.get<{ data: { enabled: boolean } }>('/api/auth/google/status');
         setGoogleOAuthEnabled(response.data.enabled);
       } catch {
         setGoogleOAuthEnabled(false);
@@ -56,7 +56,7 @@ export function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const response = await apiClient.get('/api/auth/google');
+      const response = await apiClient.get<{ data: { auth_url: string } }>('/api/auth/google');
       const { auth_url } = response.data;
       
       // Redirect to Google OAuth
