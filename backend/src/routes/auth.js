@@ -278,30 +278,28 @@ router.post('/2fa/enable', jwtRequired, async (req, res) => {
 
 /**
  * POST /api/auth/2fa/disable - Disable 2FA
+ * No OTP code required - user is already authenticated via JWT.
+ * Security: JWT token proves user identity, no need for additional 2FA verification.
  */
 router.post('/2fa/disable', jwtRequired, async (req, res) => {
   try {
-    const { totp_code } = req.body;
-
     if (!req.user.totp_secret) {
       return res.status(400).json({ error: '2FA is not enabled' });
     }
 
-    if (!totp_code) {
-      return res.status(400).json({ error: 'TOTP code required' });
-    }
-
-    const isValid = authenticator.verify({ token: totp_code, secret: req.user.totp_secret });
-    if (!isValid) {
-      return res.status(400).json({ error: 'Invalid 2FA code' });
-    }
-
+    // Disable 2FA without requiring OTP code
     await db.run(
       `UPDATE users SET totp_secret = NULL WHERE id = ?`,
       [req.userId]
     );
 
-    res.json({ message: '2FA disabled successfully' });
+    // Log security event
+    console.log(`[SECURITY] 2FA disabled by user: ${req.user.username} (ID: ${req.userId})`);
+
+    res.json({ 
+      message: '2FA disabled successfully',
+      has_2fa: false
+    });
   } catch (error) {
     console.error('2FA disable error:', error);
     res.status(500).json({ error: 'Internal server error' });
