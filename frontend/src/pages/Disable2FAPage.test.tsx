@@ -12,9 +12,15 @@ vi.mock('../api/client', () => ({
     post: vi.fn(),
     get: vi.fn(),
   },
+  authApi: {
+    validate: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+  },
   getStoredToken: vi.fn(() => 'test-token'),
-  setStoredToken: vi.fn(),
-  removeStoredToken: vi.fn(),
+  getStoredUser: vi.fn(() => null),
+  setStoredAuth: vi.fn(),
+  clearStoredAuth: vi.fn(),
 }));
 
 // Mock useNavigate
