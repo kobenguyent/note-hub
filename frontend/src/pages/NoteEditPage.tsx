@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { notesApi } from '../api/client';
+import { AIActions } from '../components/AIActions';
 import type { Note } from '../types';
 
 export function NoteEditPage() {
@@ -145,6 +146,15 @@ export function NoteEditPage() {
               Separate multiple tags with commas
             </p>
           </div>
+
+          {/* AI Actions */}
+          {body.trim() && !showPreview && (
+            <AIActions
+              text={body}
+              onApply={(newText) => setBody(newText)}
+              className="mb-4"
+            />
+          )}
 
           {/* Content with Preview Toggle */}
           <div>

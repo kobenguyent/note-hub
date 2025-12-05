@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { notesApi } from '../api/client';
+import { AIActions } from '../components/AIActions';
 import type { Note } from '../types';
 
 export function NoteViewPage() {
@@ -208,6 +209,13 @@ export function NoteViewPage() {
             )}
           </div>
         </div>
+
+        {/* AI Actions */}
+        {note.body && (
+          <div className="px-6 pt-4 pb-2 border-b border-[var(--border-color)]">
+            <AIActions text={note.body} />
+          </div>
+        )}
 
         {/* Note Content */}
         <div className="p-6 note-content prose prose-lg dark:prose-invert max-w-none">
