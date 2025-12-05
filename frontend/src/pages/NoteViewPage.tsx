@@ -96,12 +96,23 @@ export function NoteViewPage() {
   }
 
   return (
-    <div>
+    <div className="p-6">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Link to="/" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
           <i className="glass-i fas fa-arrow-left mr-2"></i>Back to Notes
         </Link>
+        
+        {/* Share Button - Always visible for own notes */}
+        {note.can_edit !== false && (
+          <Link
+            to={`/notes/${note.id}/share`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
+          >
+            <i className="fas fa-share-alt"></i>
+            <span>Share Note</span>
+          </Link>
+        )}
       </div>
 
       {/* Note Card */}
