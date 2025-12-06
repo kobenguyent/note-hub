@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
 
 interface Invitation {
@@ -21,10 +21,6 @@ export function InvitePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchInvitations();
-  }, []);
-
   const fetchInvitations = async () => {
     try {
       const data = await apiClient.get<{ invitations: Invitation[] }>('/api/v1/invitations');
@@ -36,6 +32,10 @@ export function InvitePage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchInvitations();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +79,10 @@ export function InvitePage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <i className="glass-i fas fa-spinner fa-spin text-4xl text-blue-600 mb-4" aria-hidden="true"></i>
+          <i
+            className="glass-i fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"
+            aria-hidden="true"
+          ></i>
           <p className="text-[var(--text-secondary)]">Loading invitations...</p>
         </div>
       </div>
@@ -128,7 +131,9 @@ export function InvitePage() {
               className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 bg-[var(--bg-primary)] text-[var(--text-primary)]"
               placeholder="user@example.com"
             />
-            <p className="mt-1 text-sm text-[var(--text-muted)]">Optional: Add email for reference</p>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              Optional: Add email for reference
+            </p>
           </div>
 
           <div>
@@ -244,7 +249,9 @@ export function InvitePage() {
                     )}
                   </div>
                   {invitation.message && (
-                    <p className="text-sm text-[var(--text-secondary)] mb-2">{invitation.message}</p>
+                    <p className="text-sm text-[var(--text-secondary)] mb-2">
+                      {invitation.message}
+                    </p>
                   )}
                   <div className="flex items-center space-x-4 text-xs text-[var(--text-muted)]">
                     <span>
@@ -268,7 +275,9 @@ export function InvitePage() {
                   <div className="ml-4">
                     <button
                       onClick={() =>
-                        copyToClipboard(`${window.location.origin}/register?token=${invitation.token}`)
+                        copyToClipboard(
+                          `${window.location.origin}/register?token=${invitation.token}`,
+                        )
                       }
                       className="btn-apple px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
@@ -282,7 +291,10 @@ export function InvitePage() {
           </div>
         ) : (
           <div className="text-center py-8">
-            <i className="glass-i fas fa-inbox text-4xl text-[var(--text-muted)] mb-4" aria-hidden="true"></i>
+            <i
+              className="glass-i fas fa-inbox text-4xl text-[var(--text-muted)] mb-4"
+              aria-hidden="true"
+            ></i>
             <p className="text-[var(--text-secondary)]">You haven't created any invitations yet.</p>
           </div>
         )}
