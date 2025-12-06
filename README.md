@@ -363,6 +363,36 @@ docker compose up -d
 
 See [Hetzner Deployment Guide](docs/guides/HETZNER_DEPLOYMENT.md) for complete setup.
 
+### Option 3: Drone CI for Continuous Integration (Independent)
+
+Deploy Drone CI as a **standalone, independent CI/CD platform**. Drone CI does not depend on NoteHub and can be deployed on the same server, a different server, or completely independently.
+
+> 📘 **Note**: Drone CI is a **completely independent application** with its own services, configuration, network, and data storage. It can be deployed anywhere, with or without NoteHub.
+
+**Key Features:**
+- 🐳 Container-native CI/CD platform
+- 🔗 Automatic GitHub integration
+- 🚀 Parallel pipeline execution
+- 📊 Beautiful web UI on port 8080
+- ✅ **Completely independent** from NoteHub
+
+```bash
+# Setup Drone CI (independent deployment)
+cp .env.drone.example .env.drone
+nano .env.drone  # Configure GitHub OAuth and secrets (separate from NoteHub)
+
+# Deploy Drone CI
+docker compose -f docker-compose.drone.yml up -d
+
+# Access Drone CI at http://your-server:8080
+# Works with or without NoteHub running
+```
+
+**Documentation:**
+- **[DRONE_CI_README.md](DRONE_CI_README.md)** - Quick start and overview
+- **[DRONE_CI_STANDALONE.md](docs/guides/DRONE_CI_STANDALONE.md)** - Complete independence documentation
+- **[DRONE_CI_SETUP.md](docs/guides/DRONE_CI_SETUP.md)** - Detailed setup guide
+
 ## 📚 API Documentation
 
 The API uses JWT authentication with optional Google OAuth 2.0 SSO. Key endpoints:
@@ -402,6 +432,9 @@ See [API Documentation](docs/api/JWT_API.md) for full reference.
 | Document                                                       | Description                    |
 | -------------------------------------------------------------- | ------------------------------ |
 | [Hetzner Deployment](docs/guides/HETZNER_DEPLOYMENT.md)        | Deploy to Hetzner VPS          |
+| **[Drone CI README](DRONE_CI_README.md)** | **Quick start for independent Drone CI** |
+| **[Drone CI Standalone](docs/guides/DRONE_CI_STANDALONE.md)** | **Complete independence documentation** |
+| [Drone CI Setup](docs/guides/DRONE_CI_SETUP.md)               | Detailed Drone CI setup guide |
 | [Environment Configuration](docs/guides/ENVIRONMENT_CONFIGURATION.md) | .env setup and management |
 | [Logging Configuration](docs/guides/LOGGING_CONFIGURATION.md) | Structured logging setup       |
 | [Caching & Search Setup](docs/guides/CACHING_AND_SEARCH.md)   | Redis & Elasticsearch setup    |
