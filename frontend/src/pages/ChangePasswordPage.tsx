@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 
 export function ChangePasswordPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -91,7 +93,7 @@ export function ChangePasswordPage() {
                 value={formData.currentPassword}
                 onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                 className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 bg-[var(--bg-primary)] text-[var(--text-primary)]"
-                placeholder="Enter current password..."
+                placeholder={t('profile.currentPasswordPlaceholder')}
                 required
                 aria-required="true"
               />
@@ -125,7 +127,7 @@ export function ChangePasswordPage() {
                 value={formData.newPassword}
                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                 className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 bg-[var(--bg-primary)] text-[var(--text-primary)]"
-                placeholder="Enter new password..."
+                placeholder={t('profile.newPasswordPlaceholder')}
                 required
                 minLength={12}
                 aria-required="true"
@@ -164,7 +166,7 @@ export function ChangePasswordPage() {
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 bg-[var(--bg-primary)] text-[var(--text-primary)]"
-                placeholder="Confirm new password..."
+                placeholder={t('profile.confirmNewPasswordPlaceholder')}
                 required
                 aria-required="true"
               />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { ConfirmModal } from '../components/Modal';
@@ -16,6 +17,7 @@ interface Note {
 }
 
 export function ShareNotePage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
   const [note, setNote] = useState<Note | null>(null);
@@ -171,7 +173,7 @@ export function ShareNotePage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 bg-[var(--bg-primary)] text-[var(--text-primary)]"
-              placeholder="Enter username"
+              placeholder={t('share.usernamePlaceholder')}
             />
           </div>
 
@@ -264,7 +266,7 @@ export function ShareNotePage() {
         isOpen={unshareModal !== null}
         onClose={() => setUnshareModal(null)}
         onConfirm={handleUnshareConfirm}
-        title="Remove Share Access"
+        title={t('share.removeAccessTooltip')}
         message={`Are you sure you want to remove share access for ${unshareModal?.userName}? They will no longer be able to view or edit this note.`}
         confirmText="Remove"
         cancelText="Cancel"
