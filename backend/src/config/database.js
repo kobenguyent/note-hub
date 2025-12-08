@@ -3,8 +3,8 @@
  * Supports both SQLite (default) and MySQL.
  * Supports read replicas for improved performance and high availability.
  */
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 const replication = require('./databaseReplication');
 
 class Database {
@@ -26,9 +26,7 @@ class Database {
     // SQLite takes priority if NOTES_DB_PATH is set
     if (dbPath && !mysqlHost) {
       // Resolve path relative to project root
-      const resolvedPath = path.isAbsolute(dbPath) 
-        ? dbPath 
-        : path.resolve(process.cwd(), dbPath);
+      const resolvedPath = path.isAbsolute(dbPath) ? dbPath : path.resolve(process.cwd(), dbPath);
       await this.connectSQLite(resolvedPath);
       // Initialize SQLite replication if enabled
       await this.replication.initialize(this.db, true);
@@ -56,7 +54,7 @@ class Database {
    */
   connectSQLite(dbPath) {
     const Database = require('better-sqlite3');
-    
+
     // Ensure directory exists
     const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
@@ -67,7 +65,7 @@ class Database {
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
     this.isSQLite = true;
-    
+
     console.log(`📦 Connected to SQLite database: ${dbPath}`);
     return this.db;
   }
@@ -77,7 +75,7 @@ class Database {
    */
   async connectMySQL() {
     const mysql = require('mysql2/promise');
-    
+
     const config = {
       host: process.env.MYSQL_HOST || 'localhost',
       port: parseInt(process.env.MYSQL_PORT || '3306', 10),
@@ -86,11 +84,12 @@ class Database {
       database: process.env.MYSQL_DATABASE || 'notehub',
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
     };
 
     // Disable SSL for local/Docker connections
-    const sslDisabled = process.env.MYSQL_SSL_DISABLED === 'true' ||
+    const sslDisabled =
+      process.env.MYSQL_SSL_DISABLED === 'true' ||
       config.host === 'localhost' ||
       config.host === '127.0.0.1' ||
       config.host === 'mysql' ||
@@ -104,7 +103,7 @@ class Database {
 
     this.db = await mysql.createPool(config);
     this.isSQLite = false;
-    
+
     console.log(`🐬 Connected to MySQL database: ${config.host}:${config.port}/${config.database}`);
     return this.db;
   }
@@ -262,10 +261,28 @@ class Database {
       CREATE INDEX IF NOT EXISTS ix_refresh_tokens_user ON refresh_tokens(user_id);
       CREATE INDEX IF NOT EXISTS ix_refresh_tokens_hash ON refresh_tokens(token_hash);
       CREATE INDEX IF NOT EXISTS ix_refresh_tokens_expires ON refresh_tokens(expires_at);
+
+      -- WebAuthn credentials table for passkey authentication
+      CREATE TABLE IF NOT EXISTS webauthn_credentials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        credential_id TEXT UNIQUE NOT NULL,
+        public_key TEXT NOT NULL,
+        counter INTEGER NOT NULL DEFAULT 0,
+        transports TEXT,
+        device_name TEXT,
+        aaguid TEXT,
+        last_used_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS ix_webauthn_user ON webauthn_credentials(user_id);
+      CREATE INDEX IF NOT EXISTS ix_webauthn_credential ON webauthn_credentials(credential_id);
     `;
 
     // Execute each statement separately for SQLite
-    const statements = schema.split(';').filter(s => s.trim());
+    const statements = schema.split(';').filter((s) => s.trim());
     for (const statement of statements) {
       if (statement.trim()) {
         this.db.exec(statement);
@@ -277,19 +294,19 @@ class Database {
     // (migration will add it if missing and create triggers then)
     const tablesToTrigger = ['notes', 'tasks']; // These always have updated_at in the schema
     const otherTables = ['users', 'tags', 'share_notes', 'password_reset_tokens', 'invitations'];
-    
+
     // Check which tables already have updated_at column
     for (const table of otherTables) {
       try {
         const columns = this.db.prepare(`PRAGMA table_info(${table})`).all();
-        if (columns.some(col => col.name === 'updated_at')) {
+        if (columns.some((col) => col.name === 'updated_at')) {
           tablesToTrigger.push(table);
         }
-      } catch (error) {
+      } catch (_error) {
         // Table doesn't exist yet, skip
       }
     }
-    
+
     // Create UPDATE triggers only for tables that have updated_at
     for (const table of tablesToTrigger) {
       try {
@@ -302,11 +319,11 @@ class Database {
               UPDATE ${table} SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END
         `);
-      } catch (error) {
+      } catch (_error) {
         // Trigger creation failed, migration will handle it
       }
     }
-    
+
     console.log('✅ SQLite schema initialized');
   }
 
@@ -450,16 +467,34 @@ class Database {
         INDEX ix_refresh_tokens_expires (expires_at),
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
+
+      -- WebAuthn credentials table for passkey authentication
+      CREATE TABLE IF NOT EXISTS webauthn_credentials (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        credential_id VARCHAR(512) UNIQUE NOT NULL,
+        public_key TEXT NOT NULL,
+        counter INT NOT NULL DEFAULT 0,
+        transports TEXT,
+        device_name VARCHAR(255),
+        aaguid VARCHAR(36),
+        last_used_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX ix_webauthn_user (user_id),
+        INDEX ix_webauthn_credential (credential_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
     `;
 
     // Execute each statement separately for MySQL
-    const statements = schema.split(';').filter(s => s.trim());
+    const statements = schema.split(';').filter((s) => s.trim());
     for (const statement of statements) {
       if (statement.trim()) {
         await this.db.execute(statement);
       }
     }
-    
+
     console.log('✅ MySQL schema initialized');
   }
 
@@ -474,14 +509,16 @@ class Database {
       // Helper function to fix timestamp columns and add triggers
       const fixTimestampColumns = (tableName, displayName) => {
         const columns = this.db.prepare(`PRAGMA table_info(${tableName})`).all();
-        const hasUpdatedAt = columns.some(col => col.name === 'updated_at');
-        const createdAtCol = columns.find(col => col.name === 'created_at');
-        
+        const hasUpdatedAt = columns.some((col) => col.name === 'updated_at');
+        const createdAtCol = columns.find((col) => col.name === 'created_at');
+
         // Check if created_at has problematic NOT NULL constraint without default
         // If notnull=1 and dflt_value is NULL, it means NOT NULL without DEFAULT
-        const hasProblematicCreatedAt = createdAtCol && createdAtCol.notnull === 1 && 
-                                       (createdAtCol.dflt_value === null || createdAtCol.dflt_value === undefined);
-        
+        const hasProblematicCreatedAt =
+          createdAtCol &&
+          createdAtCol.notnull === 1 &&
+          (createdAtCol.dflt_value === null || createdAtCol.dflt_value === undefined);
+
         if (hasProblematicCreatedAt) {
           console.log(`🔄 Migrating ${displayName} table: fixing created_at constraint`);
           // Need to rebuild the table to remove NOT NULL constraint or add DEFAULT
@@ -489,15 +526,17 @@ class Database {
           this.rebuildTableWithFixedTimestamps(tableName, columns);
           return; // Table rebuilt, no need for further column additions
         }
-        
+
         // Add updated_at column if missing
         if (!hasUpdatedAt) {
           console.log(`🔄 Migrating ${displayName} table: adding updated_at column`);
           // Add column without DEFAULT (SQLite limitation)
           this.db.exec(`ALTER TABLE ${tableName} ADD COLUMN updated_at DATETIME`);
           // Set initial value for existing rows
-          this.db.exec(`UPDATE ${tableName} SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL`);
-          
+          this.db.exec(
+            `UPDATE ${tableName} SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL`,
+          );
+
           // Create INSERT trigger to set updated_at on new rows
           this.db.exec(`
             CREATE TRIGGER IF NOT EXISTS insert_${tableName}_updated_at 
@@ -518,10 +557,10 @@ class Database {
         if (!allowedTables.includes(tableName)) {
           throw new Error(`Invalid table name for images column migration: ${tableName}`);
         }
-        
+
         const columns = this.db.prepare(`PRAGMA table_info(${tableName})`).all();
-        const hasImages = columns.some(col => col.name === 'images');
-        
+        const hasImages = columns.some((col) => col.name === 'images');
+
         if (!hasImages) {
           console.log(`🔄 Migrating ${displayName} table: adding images column`);
           this.db.exec(`ALTER TABLE ${tableName} ADD COLUMN images TEXT`);
@@ -537,6 +576,7 @@ class Database {
       fixTimestampColumns('password_reset_tokens', 'password_reset_tokens');
       fixTimestampColumns('invitations', 'invitations');
       fixTimestampColumns('refresh_tokens', 'refresh_tokens');
+      fixTimestampColumns('webauthn_credentials', 'webauthn_credentials');
 
       // Add images column to notes and tasks tables if missing
       addImagesColumn('notes', 'notes');
@@ -554,73 +594,77 @@ class Database {
    */
   rebuildTableWithFixedTimestamps(tableName, columns) {
     // Get table's creation SQL to understand its structure
-    const tableInfo = this.db.prepare(
-      `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`
-    ).get(tableName);
-    
+    const tableInfo = this.db
+      .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name=?`)
+      .get(tableName);
+
     if (!tableInfo) return;
 
     // Create a temporary table with fixed constraints
     const tempTableName = `${tableName}_migration_temp`;
-    
+
     // Build new table definition with fixed timestamps
-    const columnDefs = columns.map(col => {
-      let def = `${col.name} ${col.type}`;
-      
-      // Fix created_at: add DEFAULT CURRENT_TIMESTAMP
-      if (col.name === 'created_at') {
-        def += ' DEFAULT CURRENT_TIMESTAMP';
-      } else if (col.name === 'updated_at') {
-        def += ' DEFAULT CURRENT_TIMESTAMP';
-      } else {
-        // Regular columns
-        if (col.notnull === 1) def += ' NOT NULL';
-        if (col.dflt_value !== null) def += ` DEFAULT ${col.dflt_value}`;
-        if (col.pk === 1) def += ' PRIMARY KEY';
-        if (col.pk === 1 && tableName !== 'note_tag') def += ' AUTOINCREMENT';
-      }
-      
-      return def;
-    }).join(', ');
-    
+    const columnDefs = columns
+      .map((col) => {
+        let def = `${col.name} ${col.type}`;
+
+        // Fix created_at: add DEFAULT CURRENT_TIMESTAMP
+        if (col.name === 'created_at') {
+          def += ' DEFAULT CURRENT_TIMESTAMP';
+        } else if (col.name === 'updated_at') {
+          def += ' DEFAULT CURRENT_TIMESTAMP';
+        } else {
+          // Regular columns
+          if (col.notnull === 1) def += ' NOT NULL';
+          if (col.dflt_value !== null) def += ` DEFAULT ${col.dflt_value}`;
+          if (col.pk === 1) def += ' PRIMARY KEY';
+          if (col.pk === 1 && tableName !== 'note_tag') def += ' AUTOINCREMENT';
+        }
+
+        return def;
+      })
+      .join(', ');
+
     // Add updated_at if it doesn't exist
-    const hasUpdatedAt = columns.some(col => col.name === 'updated_at');
-    const finalColumnDefs = hasUpdatedAt ? columnDefs : `${columnDefs}, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`;
-    
+    const hasUpdatedAt = columns.some((col) => col.name === 'updated_at');
+    const finalColumnDefs = hasUpdatedAt
+      ? columnDefs
+      : `${columnDefs}, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`;
+
     // Get list of existing triggers to drop
-    const existingTriggers = this.db.prepare(
-      `SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name=?`
-    ).all(tableName);
-    
+    const existingTriggers = this.db
+      .prepare(`SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name=?`)
+      .all(tableName);
+
     // Execute the migration in a transaction
     this.db.exec('BEGIN TRANSACTION');
-    
+
     try {
       // Drop existing triggers first
       for (const trigger of existingTriggers) {
         this.db.exec(`DROP TRIGGER IF EXISTS ${trigger.name}`);
       }
-      
+
       // Create new table with fixed schema
       this.db.exec(`CREATE TABLE ${tempTableName} (${finalColumnDefs})`);
-      
+
       // Copy data from old table
-      const selectColumns = columns.map(c => c.name).join(', ');
+      const selectColumns = columns.map((c) => c.name).join(', ');
       const insertColumns = hasUpdatedAt ? selectColumns : `${selectColumns}, CURRENT_TIMESTAMP`;
       this.db.exec(`INSERT INTO ${tempTableName} SELECT ${insertColumns} FROM ${tableName}`);
-      
+
       // Drop old table
       this.db.exec(`DROP TABLE ${tableName}`);
-      
+
       // Rename temp table to original name
       this.db.exec(`ALTER TABLE ${tempTableName} RENAME TO ${tableName}`);
-      
+
       this.db.exec('COMMIT');
     } catch (error) {
       this.db.exec('ROLLBACK');
       throw error;
     }
-    
+
     // Recreate INSERT triggers for both created_at and updated_at
     this.db.exec(`
       CREATE TRIGGER IF NOT EXISTS insert_${tableName}_created_at 
@@ -631,7 +675,7 @@ class Database {
           UPDATE ${tableName} SET created_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END
     `);
-    
+
     this.db.exec(`
       CREATE TRIGGER IF NOT EXISTS insert_${tableName}_updated_at 
         AFTER INSERT ON ${tableName}
@@ -641,7 +685,7 @@ class Database {
           UPDATE ${tableName} SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END
     `);
-    
+
     // Recreate UPDATE trigger
     this.db.exec(`
       CREATE TRIGGER IF NOT EXISTS update_${tableName}_timestamp 
@@ -652,7 +696,7 @@ class Database {
           UPDATE ${tableName} SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END
     `);
-    
+
     console.log(`  ✓ Rebuilt ${tableName} table with fixed timestamp constraints`);
   }
 
@@ -664,24 +708,32 @@ class Database {
       // Helper function to check and add missing column in MySQL
       const addColumnIfMissing = async (tableName, columnName, displayName) => {
         // Validate table name and column name against whitelists to prevent SQL injection
-        const allowedTables = ['users', 'tags', 'notes', 'tasks', 'share_notes', 'password_reset_tokens', 'invitations'];
+        const allowedTables = [
+          'users',
+          'tags',
+          'notes',
+          'tasks',
+          'share_notes',
+          'password_reset_tokens',
+          'invitations',
+        ];
         const allowedColumns = {
-          'updated_at': 'DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
-          'images': 'TEXT'
+          updated_at: 'DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+          images: 'TEXT',
         };
-        
+
         if (!allowedTables.includes(tableName)) {
           throw new Error(`Invalid table name for migration: ${tableName}`);
         }
         if (!allowedColumns[columnName]) {
           throw new Error(`Invalid column name for migration: ${columnName}`);
         }
-        
+
         const [columns] = await this.db.execute(
-          `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${tableName}'`
+          `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${tableName}'`,
         );
-        const hasColumn = columns.some(col => col.COLUMN_NAME === columnName);
-        
+        const hasColumn = columns.some((col) => col.COLUMN_NAME === columnName);
+
         if (!hasColumn) {
           console.log(`🔄 Migrating ${displayName} table: adding ${columnName} column`);
           // Use predefined column definition from whitelist
@@ -716,7 +768,7 @@ class Database {
     if (this.replication.isEnabled() && sql.trim().toUpperCase().startsWith('SELECT')) {
       return this.replication.query(sql, params);
     }
-    
+
     // Otherwise use primary connection
     if (this.isSQLite) {
       return this.db.prepare(sql).all(...params);
@@ -734,7 +786,7 @@ class Database {
     if (this.replication.isEnabled() && sql.trim().toUpperCase().startsWith('SELECT')) {
       return this.replication.queryOne(sql, params);
     }
-    
+
     // Otherwise use primary connection
     if (this.isSQLite) {
       return this.db.prepare(sql).get(...params);
@@ -768,7 +820,7 @@ class Database {
   async close() {
     // Close replication connections first
     await this.replication.close();
-    
+
     if (this.db) {
       if (this.isSQLite) {
         this.db.close();
