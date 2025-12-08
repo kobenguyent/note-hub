@@ -9,6 +9,7 @@ import {
   startRegistration,
 } from '@simplewebauthn/browser';
 import { API_VERSION, apiClient } from '../api/client';
+import i18n from '../i18n';
 
 interface PasskeyStatus {
   enabled: boolean;
@@ -46,6 +47,43 @@ interface PasskeyTokens {
 }
 
 class PasskeyService {
+  /**
+   * Handle WebAuthn errors with user-friendly translated messages.
+   */
+  private handleWebAuthnError(
+    error: unknown,
+    operationType: 'registration' | 'authentication',
+  ): string {
+    if (error instanceof Error) {
+      switch (error.name) {
+        case 'NotAllowedError':
+          return operationType === 'registration'
+            ? i18n.t('passkey.errors.registrationCancelled')
+            : i18n.t('passkey.errors.authenticationCancelled');
+        case 'NotSupportedError':
+          return i18n.t('passkey.errors.notSupported');
+        case 'InvalidStateError':
+          return operationType === 'registration'
+            ? i18n.t('passkey.errors.alreadyRegistered')
+            : i18n.t('passkey.errors.notFound');
+        case 'AbortError':
+          return i18n.t('passkey.errors.cancelled');
+        case 'SecurityError':
+          return i18n.t('passkey.errors.securityError');
+      }
+    }
+
+    // Fallback to generic error or server error message
+    const err = error as { error?: string; message?: string };
+    return (
+      err?.error ||
+      err?.message ||
+      (operationType === 'registration'
+        ? i18n.t('passkey.errors.registrationFailed')
+        : i18n.t('passkey.errors.authenticationFailed'))
+    );
+  }
+
   /**
    * Check if passkey authentication is available.
    */
@@ -99,10 +137,9 @@ class PasskeyService {
       return { success: true };
     } catch (error: unknown) {
       console.error('Passkey registration error:', error);
-      const err = error as { error?: string; message?: string };
       return {
         success: false,
-        error: err?.error || err?.message || 'Failed to register passkey',
+        error: this.handleWebAuthnError(error, 'registration'),
       };
     }
   }
@@ -132,10 +169,9 @@ class PasskeyService {
       return { success: true, tokens: result as PasskeyTokens };
     } catch (error: unknown) {
       console.error('Passkey authentication error:', error);
-      const err = error as { error?: string; message?: string };
       return {
         success: false,
-        error: err?.error || err?.message || 'Failed to authenticate with passkey',
+        error: this.handleWebAuthnError(error, 'authentication'),
       };
     }
   }
