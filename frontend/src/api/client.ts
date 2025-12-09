@@ -15,6 +15,7 @@ import type {
   TaskResponse,
   TasksResponse,
   User,
+  UsersResponse,
 } from '../types';
 
 // Use relative URL in production (same origin), absolute in development
@@ -338,5 +339,17 @@ export const aiApi = {
       body: JSON.stringify({ text, style }),
     });
     return result.result;
+  },
+};
+
+export const adminApi = {
+  async getUsers(params: URLSearchParams): Promise<UsersResponse> {
+    return apiRequest<UsersResponse>(`${API_VERSION}/admin/users?${params}`);
+  },
+
+  async disable2fa(userId: number): Promise<void> {
+    await apiRequest(`${API_VERSION}/admin/users/${userId}/disable-2fa`, {
+      method: 'POST',
+    });
   },
 };
