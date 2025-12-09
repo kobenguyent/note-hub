@@ -100,7 +100,7 @@ scrape_configs:
   # ==========================================================================
   - job_name: 'traefik'
     static_configs:
-      - targets: ['notehub-traefik:8080']
+      - targets: ['notehub-traefik:9091']
         labels:
           service: 'traefik'
           component: 'proxy'
@@ -111,7 +111,7 @@ scrape_configs:
   # ==========================================================================
   - job_name: 'traefik-mysql'
     static_configs:
-      - targets: ['notehub-traefik-mysql:8080']
+      - targets: ['notehub-traefik-mysql:9091']
         labels:
           service: 'traefik'
           component: 'proxy'
@@ -123,7 +123,7 @@ scrape_configs:
   # ==========================================================================
   - job_name: 'traefik-prod'
     static_configs:
-      - targets: ['notehub-traefik-prod:8080']
+      - targets: ['notehub-traefik-prod:9091']
         labels:
           service: 'traefik'
           component: 'proxy'
@@ -168,9 +168,10 @@ scrape_configs:
 # =============================================================================
 # Retention time for metrics data
 # For a 2GB RAM VPS, we keep retention conservative to save disk space
-storage:
-  tsdb:
-    # Keep metrics for 15 days (can be adjusted based on disk space)
-    retention.time: 15d
-    # Maximum size of storage (adjust based on available disk space)
-    retention.size: 5GB
+# Note: Storage retention is configured via command-line flags in docker-compose.yml
+# The following configuration is not supported in the config file:
+# storage:
+#   tsdb:
+#     retention:
+#       time: 15d
+#       size: 5GB
