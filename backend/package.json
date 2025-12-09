@@ -1,6 +1,6 @@
 {
   "name": "notehub-backend",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "NoteHub Backend - Node.js/Express API",
   "main": "src/index.js",
   "scripts": {
@@ -31,12 +31,14 @@
     "multer": "^2.0.2",
     "mysql2": "^3.11.4",
     "otplib": "^12.0.1",
+    "prom-client": "^15.1.0",
     "qrcode": "^1.5.4",
     "sanitize-html": "^2.13.1",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7",
     "uuid": "^11.0.3",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "winston-graylog2": "^2.1.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",

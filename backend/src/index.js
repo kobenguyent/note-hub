@@ -33,6 +33,7 @@ const passkeyRoutes = require('./routes/passkey');
 const notesRoutes = require('./routes/notes');
 const tasksRoutes = require('./routes/tasks');
 const profileRoutes = require('./routes/profile');
+const usersRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const aiRoutes = require('./routes/ai');
 const uploadRoutes = require('./routes/upload');
@@ -105,6 +106,10 @@ app.use(securityHeadersMiddleware);
 const { requestLogger } = require('./middleware/logging');
 app.use(requestLogger);
 
+// Prometheus metrics middleware
+const { metricsMiddleware, metricsEndpoint } = require('./middleware/metrics');
+app.use(metricsMiddleware);
+
 // Response adapter for backward compatibility
 const { markAsV1, legacyResponseAdapter } = require('./middleware/responseAdapter');
 app.use(legacyResponseAdapter);
@@ -115,6 +120,7 @@ app.use(`${API_VERSION}/auth/passkey`, markAsV1, passkeyRoutes);
 app.use(`${API_VERSION}/notes`, markAsV1, notesRoutes);
 app.use(`${API_VERSION}/tasks`, markAsV1, tasksRoutes);
 app.use(`${API_VERSION}/profile`, markAsV1, profileRoutes);
+app.use(`${API_VERSION}/users`, markAsV1, usersRoutes);
 app.use(`${API_VERSION}/admin`, markAsV1, adminRoutes);
 app.use(`${API_VERSION}/ai`, markAsV1, aiRoutes);
 app.use(`${API_VERSION}/upload`, markAsV1, uploadRoutes);
@@ -122,6 +128,39 @@ app.use(`${API_VERSION}/upload`, markAsV1, uploadRoutes);
 // Health check endpoints with standardized response
 const responseHandler = require('./utils/responseHandler');
 const packageJson = require('../package.json');
+
+// Prometheus metrics endpoint (must be before other routes to avoid auth)
+app.get('/metrics', metricsEndpoint);
+app.get('/api/metrics', metricsEndpoint);
+
+// Update application metrics periodically
+const { updateApplicationMetrics } = require('./middleware/metrics');
+async function updateMetricsJob() {
+  try {
+    // Combine queries for better performance
+    const counts = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM users) as users,
+        (SELECT COUNT(*) FROM notes) as notes,
+        (SELECT COUNT(*) FROM tasks) as tasks
+    `);
+
+    const metrics = counts?.[0] || { users: 0, notes: 0, tasks: 0 };
+
+    updateApplicationMetrics({
+      users: metrics.users || 0,
+      notes: metrics.notes || 0,
+      tasks: metrics.tasks || 0,
+    });
+  } catch (error) {
+    logger.error('Error updating application metrics', { error: error.message });
+  }
+}
+
+// Update metrics every 30 seconds
+setInterval(updateMetricsJob, 30000);
+// Initial update
+updateMetricsJob();
 
 // Shared health check logic
 async function getHealthStatus() {

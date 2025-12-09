@@ -67,6 +67,8 @@ A modern, secure, and feature-rich personal notes application with a React SPA f
 | **Authentication** | JWT + Google OAuth 2.0 (optional) |
 | **API**          | RESTful with JWT authentication     |
 | **Reverse Proxy** | Traefik v2.11 (automatic routing)   |
+| **Monitoring**   | Prometheus + Grafana                |
+| **Logging**      | Winston + Graylog (optional)        |
 | **Deployment**   | Docker + Traefik + Hetzner VPS      |
 | **CI/CD**        | GitHub Actions + GitHub Pages       |
 
@@ -80,6 +82,14 @@ A modern, secure, and feature-rich personal notes application with a React SPA f
   - HTTP to HTTPS redirect with HSTS security headers
   - Modern dashboard and monitoring
   - ⚠️ **Using a custom domain?** See [TROUBLESHOOTING_SSL.md](TROUBLESHOOTING_SSL.md) to fix certificate warnings
+- 📊 **Prometheus + Grafana Monitoring** - Complete observability stack
+  - Real-time application metrics (requests, latency, errors)
+  - System metrics (CPU, memory, disk, network)
+  - Container metrics via cAdvisor
+  - Pre-built Grafana dashboards
+  - Optimized for 2GB RAM VPS (~1GB overhead)
+  - No port conflicts with NoteHub or Drone CI
+  - See [MONITORING_QUICKSTART.md](MONITORING_QUICKSTART.md) for setup
 
 ### Performance Enhancements (December 2024)
 - ⚡ **10x Faster Queries** - Redis caching reduces note list operations from 80ms to 8ms
@@ -457,6 +467,7 @@ See [API Documentation](docs/api/JWT_API.md) for full reference.
 | [Drone CI Setup](docs/guides/DRONE_CI_SETUP.md)               | Detailed Drone CI setup guide |
 | [Environment Configuration](docs/guides/ENVIRONMENT_CONFIGURATION.md) | .env setup and management |
 | [Logging Configuration](docs/guides/LOGGING_CONFIGURATION.md) | Structured logging setup       |
+| **[Graylog Setup](GRAYLOG_SETUP.md)** | **Centralized log aggregation and search** |
 | **[Database Replication](docs/guides/DATABASE_REPLICATION.md)** | **Read replicas for MySQL & SQLite** |
 | [Caching & Search Setup](docs/guides/CACHING_AND_SEARCH.md)   | Redis & Elasticsearch setup    |
 | [Google OAuth Setup](docs/guides/GOOGLE_SSO_SETUP.md)         | Configure Google Single Sign-On|
@@ -479,6 +490,28 @@ See [API Documentation](docs/api/JWT_API.md) for full reference.
 | [SQL vs NoSQL Comparison](docs/investigation/SQL_VS_NOSQL_COMPARISON.md) | Detailed comparison   |
 | [Implementation Summary](docs/investigation/IMPLEMENTATION_SUMMARY.md) | Performance enhancements |
 | [Test Suite Summary](docs/testing/TEST_SUITE_SUMMARY.md)      | Complete test documentation    |
+
+## 📚 Documentation
+
+All documentation is available in both Markdown and HTML formats for better readability:
+
+- **[Documentation Portal](docs/documentation.html)** - Beautiful web interface with search functionality
+- **[Complete Index](docs/INDEX.md)** - Full list of all documentation files
+- **[Getting Started](docs/README.md)** - Project overview and quick start
+
+### Building Documentation HTML
+
+The documentation is automatically converted from Markdown to HTML during deployment. To build locally:
+
+```bash
+# Install dependencies
+npm install
+
+# Convert all markdown files to HTML
+npm run build:docs
+```
+
+This generates HTML files with consistent styling, syntax highlighting, and easy navigation between documents.
 
 ## 🤝 Contributing
 
